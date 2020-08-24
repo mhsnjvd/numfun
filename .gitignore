@@ -1,0 +1,7 @@
+dist/
+build/
+.DS_Store
+.idea/
+__pycache__/
+.ipynb_checkpoints/
+*.ipynb
