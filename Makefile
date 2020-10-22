@@ -16,7 +16,7 @@ docformatter-check:
 	docformatter -r . --check --wrap-summaries=120 --wrap-descriptions=120
 
 isort-check:
-	isort --check-only numfun/ tests/ -m 4 -l 120
+	isort --check-only -rc numfun/ tests/ -m 4 -l 120
 
 flake8:
 	flake8 . --config=build-support/.flake8
