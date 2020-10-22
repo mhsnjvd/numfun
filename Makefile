@@ -27,7 +27,7 @@ bandit:
 pylint:
 	pylint numfun/ tests/ --rcfile=build-support/.pylintrc
 
-lint: flake8 bandit pylint
+lint: flake8 bandit pylint docformatter-check
 
 # TYPE CHECK -----------------------------------------------------------------------------------------------------------
 mypy:

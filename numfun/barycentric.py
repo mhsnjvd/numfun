@@ -7,8 +7,9 @@ def barycentric_interpolation_jit(x: np.array,
                                   fvals: np.array,
                                   xk: np.array,
                                   wk: np.array) -> np.array:
-    """See the non-jitted version for documentation. This is the
-    jit enabled main workhorse code
+    """See the non-jitted version for documentation.
+
+    This is the jit enabled main workhorse code
     """
     if len(x) < 4 * len(xk):
         # Loop over evaluation points
@@ -48,10 +49,9 @@ def barycentric_interpolation(x: np.array,
                               fvals: np.array,
                               xk: np.array,
                               wk: np.array = None) -> np.array:
-    """ Barycentric interpolation formula
-      barycentric_interpolation(x, fvals, xk, wk) uses the 2nd form barycentric formula with
-      weights wk to evaluate an interpolant of the data {xk, fvals} at the points x.
-      Note that xk, wk (if provided), and fk should all be arrays of the same length.
+    """Barycentric interpolation formula barycentric_interpolation(x, fvals, xk, wk) uses the 2nd form barycentric
+    formula with weights wk to evaluate an interpolant of the data {xk, fvals} at the points x. Note that xk, wk (if
+    provided), and fk should all be arrays of the same length.
 
     :param x: a numpy array of points where we want to evaluate the interpolant
     :param fvals: a numpy array of values taken by the function at the points xk
@@ -98,9 +98,10 @@ def barycentric_interpolation(x: np.array,
 
 
 def barycentric_weights(x):
-    """ Barycentric weights.
-    returns scaled barycentric weights for the points in the
-    array x. The weights w are scaled such that norm(w, inf) == 1.
+    """Barycentric weights.
+
+    returns scaled barycentric weights for the points in the array x. The weights w are scaled such that norm(w, inf) ==
+    1.
     """
     # input dimension:
     n = len(x)

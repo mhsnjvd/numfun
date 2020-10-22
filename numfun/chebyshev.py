@@ -7,13 +7,14 @@ from numfun.barycentric import barycentric_interpolation
 
 
 def complexify(func):
-    """Decorator to apply f on real and imaginary parts and the return the sum
+    """Decorator to apply f on real and imaginary parts and the return the sum.
+
     :param func: A linear operator such that f(a+ib) = f(a) + i f(b)
     :return: a function which adds f(real(input)) + 1j * f(imag(input))
     """
     @wraps(func)
     def wrapper(c):
-        """c is a complex input array"""
+        """c is a complex input array."""
         # Make sure c is a numpy array
         c = 1.0 * np.array(c)
         if np.all(np.isreal(c)):
@@ -80,7 +81,7 @@ def chebyshev_coefficients_of_integral(coefficients: np.array) -> np.array:
 @complexify
 @njit
 def chebyshev_definite_integral(coefficients: np.array) -> float:
-    """ Definite integral of a function on the interval [-1, 1]."""
+    """Definite integral of a function on the interval [-1, 1]."""
 
     n = len(coefficients)
     # Get the length of the coefficients:
@@ -108,9 +109,8 @@ def chebyshev_definite_integral(coefficients: np.array) -> float:
 @complexify
 @njit
 def chebyshev_coefficients_of_derivative(c: np.array) -> np.array:
-    """Recurrence relation for coefficients of derivative.
-    c is the array of coefficients of a Chebyshev series.
-    c_out is the array of coefficients for the derivative.
+    """Recurrence relation for coefficients of derivative. c is the array of coefficients of a Chebyshev series. c_out
+    is the array of coefficients for the derivative.
 
     :param c: input coefficients
     :return: c_out: coefficients of the derivative
@@ -146,8 +146,7 @@ def chebyshev_clenshaw_evaluation(x: np.array, coefficients: np.array) -> np.arr
 
 @njit
 def chebyshev_clenshaw_evaluation_internal(x: np.array, c: np.array) -> np.array:
-    """Clenshaw's algorithm for evaluating a Chebyshev series with real
-    coefficients c at points x.
+    """Clenshaw's algorithm for evaluating a Chebyshev series with real coefficients c at points x.
 
     NOTE: the algorithm works for complex numbers, but since we are using jit, we restrict
     this to reals. One can remove @njit and use this code directly for the general case
@@ -178,10 +177,9 @@ def chebyshev_clenshaw_evaluation_internal(x: np.array, c: np.array) -> np.array
 
 @njit
 def chebyshev_barycentric_weights(n: int) -> np.array:
-    """Barycentric weights for Chebyshev points of 2nd kind.
-    Returns n barycentric weights for polynomial interpolation on
-    a Chebyshev grid of the 2nd kind. The weights are normalised so that they
-    have infinity norm equal to 1 and the final entry is positive.
+    """Barycentric weights for Chebyshev points of 2nd kind. Returns n barycentric weights for polynomial interpolation
+    on a Chebyshev grid of the 2nd kind. The weights are normalised so that they have infinity norm equal to 1 and the
+    final entry is positive.
 
     See Thm. 5.2 of Trefethen, Approximation Theory and Approximation Practice,
     SIAM, 2013 for more information.
@@ -209,7 +207,7 @@ def chebyshev_barycentric_weights(n: int) -> np.array:
 
 @njit
 def chebyshev_points(n: int) -> np.array:
-    """ Chebyshev points of 2nd kind in the interval [-1, 1]
+    """Chebyshev points of 2nd kind in the interval [-1, 1]
 
     :param n: an non-negative integer
     :return: a numpy array of length n
@@ -230,9 +228,9 @@ def chebyshev_points(n: int) -> np.array:
 
 
 def chebyshev_barycentric_interpolation(x: np.array, fvals: np.array) -> np.array:
-    """Chebyhsev barycentric interpolation on a 2nd kind Chebyshev grid.
-    The method evaluates f(x) using the barycentric interpolation formula, where f is the
-    polynomial interpolant on a 2nd kind Chebyshev grid to the values passed in fvals
+    """Chebyhsev barycentric interpolation on a 2nd kind Chebyshev grid. The method evaluates f(x) using the barycentric
+    interpolation formula, where f is the polynomial interpolant on a 2nd kind Chebyshev grid to the values passed in
+    fvals.
 
     Example:
     x = chebyshev_points(21);
@@ -260,8 +258,7 @@ def chebyshev_barycentric_interpolation(x: np.array, fvals: np.array) -> np.arra
 
 @njit
 def angles_of_chebyshev_points(n: int) -> np.array:
-    """Angles of Chebyshev points of 2nd kind in [-1, 1].
-    """
+    """Angles of Chebyshev points of 2nd kind in [-1, 1]."""
 
     if n == 0:
         out = np.zeros((0,))
@@ -275,7 +272,7 @@ def angles_of_chebyshev_points(n: int) -> np.array:
 
 
 def chebyshev_coefficients_to_values(chebyshev_coefficients: np.array) -> np.array:
-    """ Convert Chebyshev coefficients to values at Chebyshev points of the 2nd kind.
+    """Convert Chebyshev coefficients to values at Chebyshev points of the 2nd kind.
 
     :param chebyshev_coefficients: a numpy array of n Chebyshev coefficients
     :return: a numpy array of length n with values at 2nd kind Chebyshev points
@@ -343,8 +340,9 @@ def chebyshev_coefficients_to_values(chebyshev_coefficients: np.array) -> np.arr
 
 
 def chebyshev_values_to_coefficients(values: np.array) -> np.array:
-    """ Convert values at Chebyshev points to Chebyshev coefficients.
-      the method returns the (N+1)x1 vector C of coefficients such that F(x)
+    """Convert values at Chebyshev points to Chebyshev coefficients. the method returns the (N+1)x1 vector C of
+    coefficients such that F(x)
+
       = C(0)*T_0(x) + C(1)*T_1(x) + C(N)*T_N(x) (where T_k(x) denotes the
       k-th 1st-kind Chebyshev polynomial) interpolates the data [V_0, V_1, ..., V_N]
       at Chebyshev points of the 2nd kind.
@@ -416,8 +414,8 @@ def chebyshev_values_to_coefficients(values: np.array) -> np.array:
 
 @njit
 def chebyshev_quadrature_weights(n: int) -> np.array:
-    """ Quadrature weights for Chebyshev points of 2nd kind.
-    returns the N weights for Clenshaw-Curtis quadrature on 2nd-kind Chebyshev points.
+    """Quadrature weights for Chebyshev points of 2nd kind. returns the N weights for Clenshaw-Curtis quadrature on 2nd-
+    kind Chebyshev points.
 
     We use a variant of Waldvogel's algorithm [1], due to Nick Hale. (See below)
 
@@ -477,9 +475,9 @@ def chebyshev_quadrature_weights(n: int) -> np.array:
 
 @njit
 def alias_chebyshev_coefficients(c: np.array, m: int) -> np.array:
-    """Alias Chebyshev coefficients on the 2nd kind Chebyshev grid of length m.
-    The method aliases the Chebyshev coefficients stored in the column vector coeffs
-    to have length m. If m > len(c), the coefficients are padded with zeros.
+    """Alias Chebyshev coefficients on the 2nd kind Chebyshev grid of length m. The method aliases the Chebyshev
+    coefficients stored in the column vector coeffs to have length m. If m > len(c), the coefficients are padded with
+    zeros.
 
     References:
       L.N. Trefethen, Approximation Theory and Approximation Practice, SIAM, 2013

@@ -7,7 +7,7 @@ from numfun.function import Function
 
 
 def test_construction_discrete_data() -> None:
-    """Test Constuction with discrete x and y data"""
+    """Test Constuction with discrete x and y data."""
     x = np.linspace(0, 10, 101)
     y = np.linspace(0, 10, 101)
     func = Function(xdata=x, ydata=y)
@@ -89,7 +89,7 @@ def test_construction_adaptive() -> None:
 
 
 def test_addition() -> None:
-    """Test that it can sum a list of fractions"""
+    """Test that it can sum a list of fractions."""
     f = Function(lambda x: x)
     g = Function(lambda x: -x)
     h = f + g
@@ -127,7 +127,7 @@ def test_abs() -> None:
 
 
 def check_add_function_to_function(f: Function, f_op: Callable, g: Callable, g_op: Callable, x: np.ndarray) -> bool:
-    """Test the addition of two function f and g, specified by f_op and g_op"""
+    """Test the addition of two function f and g, specified by f_op and g_op."""
     h1 = f + g
     h2 = g + f
     result_1 = (h1 == h2)
@@ -254,9 +254,8 @@ def test_rsub() -> None:
 
 
 def check_sub_function_and_function(f: Function, f_op: Callable, g: Callable, g_op: Callable, x: np.ndarray) -> bool:
-    """Test the subtraction of two objects f and g, specified by f_op and g_op, using a grid of points x in [-1  1]
-    for testing samples.
-    """
+    """Test the subtraction of two objects f and g, specified by f_op and g_op, using a grid of points x in [-1  1] for
+    testing samples."""
     h1 = f - g
     h2 = g - f
     result_1 = (h1 == (-1.0 * h2))
@@ -333,8 +332,9 @@ def test_sub() -> None:
 
 
 def test_rmul() -> None:
-    """ Test the multiplication of f, specified by f_op, by a scalar alpha
-    Generate a few random points to use as test values.
+    """Test the multiplication of f, specified by f_op, by a scalar alpha Generate a few random points to use as test
+    values.
+
     :return:
     """
     x_ = -1 + 2.0 * np.random.rand(100)
@@ -358,10 +358,11 @@ def test_rmul() -> None:
 def check_mul_function_by_function(
         f: Function, f_op: Callable, g: Callable, g_op: Callable, x: np.ndarray, check_positive: bool
 ) -> bool:
-    """ Test the multiplication of two function f and g, specified by f_op and
-     g_op, using a grid of points x in [-1  1] for testing samples.  If check_positive is
-     True, an additional check is performed to ensure that the values of the result
-     are all non-negative otherwise, this check is skipped.
+    """Test the multiplication of two function f and g, specified by f_op and g_op, using a grid of points x in [-1  1]
+    for testing samples.
+
+    If check_positive is True, an additional check is performed to ensure that the values of the result are all non-
+    negative otherwise, this check is skipped.
     """
     h = f * g
 

@@ -20,9 +20,9 @@ from numfun.chebyshev import chebyshev_values_to_coefficients
 
 
 def scalar_vector_mix(func):
-    """Decorator which returns scalars for
-    scalars and vectors for vectors. Assumes
-    that f can only accept and return vector
+    """Decorator which returns scalars for scalars and vectors for vectors. Assumes that f can only accept and return
+    vector.
+
     :param func: function to be decorated
     :return: the decorated function
     """
@@ -133,7 +133,7 @@ class Fun:
         return
 
     def construct_from_lambda(self, fun, length=None):
-        """Adaptive or fixed length construction of a function object from lambda"""
+        """Adaptive or fixed length construction of a function object from lambda."""
         self.function = fun
 
         # TODO: Do we want this:
@@ -200,7 +200,7 @@ class Fun:
                  coefficients=np.zeros((0,)),            # Chebyshev coefficients of the function
                  points=np.zeros((0,)),                  # Points on which values are taken, default to Chebyshev
                  ):
-        """To construct a function, you can
+        """To construct a function, you can.
 
         1. Pass a function i.e., a lambda in which case values,
         coefficients, and points should not be passed in or should
@@ -290,8 +290,7 @@ class Fun:
         return ax
 
     def plot_coefficients(self, *args, **kwargs):
-        """Display Chebyshev coefficients.
-        plots the Chebyshev coefficients of a Function f on a semilogy scale.
+        """Display Chebyshev coefficients. plots the Chebyshev coefficients of a Function f on a semilogy scale.
 
         Note: to make the log of coefficients comparable, zero coefficients have a small
         value added to them (typically close to relative machine precision)).
@@ -361,12 +360,12 @@ class Fun:
         return len(self.roots()) == 0
 
     def isreal(self):
-        """True for a real function"""
+        """True for a real function."""
         # Check if all the coefficients are real:
         return np.all(np.isreal(self.coefficients))
 
     def iszero(self):
-        """True for zero Function objects. """
+        """True for zero Function objects."""
         # TODO: supply tolerances here?
         return np.allclose(self.coefficients, 0.0 * self.coefficients)
 
@@ -392,6 +391,7 @@ class Fun:
 
     def isfinite(self):
         """Test if a Function is bounded.
+
         returns False if f has any infinite coefficients
         """
         # Check if coefficients are finite:
@@ -399,13 +399,14 @@ class Fun:
 
     def isinf(self):
         """Test if a Function is unbounded.
+
         returns True if f has any infinite coefficients
         """
         # Check if any coefficients are infinite:
         return np.any(np.isinf(self.coefficients))
 
     def isnan(self):
-        """Test if a Function has any NaN coefficients"""
+        """Test if a Function has any NaN coefficients."""
         # Check if any coefficients are NaN:
         return np.any(np.isnan(self.coefficients))
 
@@ -452,7 +453,7 @@ class Fun:
         return out
 
     def conj(self):
-        """Alias of conjugate"""
+        """Alias of conjugate."""
         return self.conjugate()
 
     def fix(self):
@@ -472,7 +473,8 @@ class Fun:
 
     def flipud(self):
         """Flip/reverse a function object.
-          returns g such that g(x) = f(-x) for all x in [-1, 1].
+
+        returns g such that g(x) = f(-x) for all x in [-1, 1].
         """
         out = self.copy()
         # Negate the odd coefficients:
@@ -492,9 +494,10 @@ class Fun:
 
     def abs(self):
         """Absolute value of a function.
-         returns the absolute value of f, where f has no roots in [-1 1].
-         WARNING: If len(f.roots()) > 0, f.abs() will return garbage
-         with no warning. f can be complex.
+
+        returns the absolute value of f, where f has no roots in [-1 1].
+        WARNING: If len(f.roots()) > 0, f.abs() will return garbage
+        with no warning. f can be complex.
         """
         # Make a copy in the beginning to make sure
         # all info is saved for child class instances as well
@@ -761,7 +764,7 @@ class Fun:
     # ############################################################
     # TODO: try using @scalar_vector_mix decorator
     def evaluate(self, x):
-        """Evaluate the object at the point(s) x"""
+        """Evaluate the object at the point(s) x."""
 
         x_is_scalar = not isinstance(x, Iterable)
 
@@ -791,6 +794,7 @@ class Fun:
 
     def poly(self):
         """Polynomial coefficients of a function.
+
         c = poly(f) returns the polynomial coefficients of f so that
         f(x) = c[n]*x^n + C[n-1]*x^(n-1) + ... + c[1]*x + c[0]
         """
@@ -807,10 +811,8 @@ class Fun:
             return np.max(np.abs(self.values))
 
     def minandmax(self):
-        """Global minimum and maximum on [-1,1].
-        returns a tuple (vals, pos).
-        vals is a numpy array of length 2: [min(f), max(f)] with the
-        global minimum and maximum of the f on [-1,1].
+        """Global minimum and maximum on [-1,1]. returns a tuple (vals, pos). vals is a numpy array of length 2:
+        [min(f), max(f)] with the global minimum and maximum of the f on [-1,1].
 
         pos is a numpy array of length 2: [argmin(f), argmax(f)]
 
@@ -819,7 +821,6 @@ class Fun:
         is, vales = f(pos) where _, pos = f.abs().minandmax(). (The algorithm
         actually computes (f.abs()**2).minandmax() to avoid introducing
         singularities in the function).
-
         """
 
         if not self.isreal():
@@ -904,8 +905,7 @@ class Fun:
         """Roots of a function in the interval [-1,1]."""
 
         def roots_main(c, htol):
-            """Compute the roots of the polynomial given by the coefficients c on
-            the unit interval."""
+            """Compute the roots of the polynomial given by the coefficients c on the unit interval."""
 
             # Simplify the coefficients:
             tail_max = np.spacing(1) * np.abs(c).sum()
@@ -1108,9 +1108,9 @@ class Fun:
 
     def sample_test(self, op, values, v_scale=0.0, h_scale=1.0):
         """Test evaluation of input lambda op against a function approximation.
-        evaluates both the function op and its approximation at one or more points
-        within [-1, 1]. If the error is sufficiently small (relative to
-        v_scale and h_scale) the test passes and returns True, otherwise False.
+
+        evaluates both the function op and its approximation at one or more points within [-1, 1]. If the error is
+        sufficiently small (relative to v_scale and h_scale) the test passes and returns True, otherwise False.
         """
 
         # Set a tolerance:
@@ -1135,14 +1135,15 @@ class Fun:
         return np.max(abs_err) <= tol
 
     def simplify(self, tol=None):
-        """Remove small trailing Chebyshev coefficients of an approximation.
-         simplify attempts to obtain a 'simplified' version g of a resolved
-         function f such that len(g) <= len(f) but ||g - f|| is small in
-         a relative sense. The algorithm uses the standard_chop() routine.
+        """Remove small trailing Chebyshev coefficients of an approximation. simplify attempts to obtain a 'simplified'
+        version g of a resolved.
 
-         If f is not resolved, f is returned unchanged.
+        function f such that len(g) <= len(f) but ||g - f|| is small in
+        a relative sense. The algorithm uses the standard_chop() routine.
 
-         g = f.simplify(tol) does the same as above but uses tol instead of default tol.
+        If f is not resolved, f is returned unchanged.
+
+        g = f.simplify(tol) does the same as above but uses tol instead of default tol.
         """
 
         coefficients = np.copy(self.coefficients)
@@ -1178,7 +1179,7 @@ class Fun:
         return result
 
     def standard_chop(self, coefficients, tol=None):
-        """Rule for chopping a Chebyshev series
+        """Rule for chopping a Chebyshev series.
 
         :param coefficients: input coefficients
         :param tol: A number in (0,1) representing a target relative accuracy.
@@ -1262,8 +1263,7 @@ class Fun:
             return cutoff
 
     def standard_check(self, values=None, v_scale=0.0, h_scale=1.0, tol=None):
-        """Attempt to trim Chebyshev coefficients in an approximation.
-        """
+        """Attempt to trim Chebyshev coefficients in an approximation."""
 
         if tol is None:
             tol = self.tolerance
@@ -1578,11 +1578,11 @@ class Function:
         return np.all([f.all() for f in self.pieces])
 
     def isreal(self):
-        """True for a real function"""
+        """True for a real function."""
         return np.all([f.isreal() for f in self.pieces])
 
     def iszero(self):
-        """True for zero Function objects. """
+        """True for zero Function objects."""
         # TODO: supply tolerances here?
         return np.all([f.iszero() for f in self.pieces])
 
@@ -1594,18 +1594,20 @@ class Function:
 
     def isfinite(self):
         """Test if a Function is bounded.
+
         returns False if f has any unbounded piece
         """
         return np.all([f.isfinite() for f in self.pieces])
 
     def isinf(self):
         """Test if a Function is unbounded.
+
         returns True if f has any unbounded piece
         """
         return np.any([f.isinf() for f in self.pieces])
 
     def isnan(self):
-        """Test if a Function has any NaN piece"""
+        """Test if a Function has any NaN piece."""
         return np.any([f.isnan() for f in self.pieces])
 
     # #############################################################
@@ -1653,12 +1655,14 @@ class Function:
 
     def vscale(self):
         """Vertical scale of a function.
+
         :return: float
         """
         return np.max([f.vscale() for f in self.pieces])
 
     def hscale(self):
         """Horizontal scale of a function.
+
         :return: float, length of the interval on which the function lives
         """
         return self.domain[-1] - self.domain[0]

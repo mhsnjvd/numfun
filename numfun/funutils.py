@@ -27,7 +27,7 @@ def split_array_at_boundaries(x: np.array, boundary: np.array, out: List):
 
 
 def inf_norm_of_derivatives(f, domain=np.array([-1.0, 1.0]), order=4, grid_size=50):
-    """Compute the approximate infinity norm of derivatives of order up to order"""
+    """Compute the approximate infinity norm of derivatives of order up to order."""
     a = domain[0]
     b = domain[-1]
 

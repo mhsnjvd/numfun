@@ -8,7 +8,8 @@ from numfun.function import Function
 
 @njit
 def polyfit_jit(x: np.array, y: np.array, n: int, a: float, b: float) -> tuple:
-    """Jitted version of polyfit, see polyfit for details
+    """Jitted version of polyfit, see polyfit for details.
+
     :param x: nodes
     :param y: data
     :param n: degree of the polynomial fit
@@ -37,8 +38,8 @@ def polyfit_jit(x: np.array, y: np.array, n: int, a: float, b: float) -> tuple:
 
 
 def polyfit(x, y, degree=1, domain=None):
-    """Least squares polynomial fitting to
-    discrete data with piecewise domain splitting handled
+    """Least squares polynomial fitting to discrete data with piecewise domain splitting handled.
+
     :param x:
     :param y:
     :param degree: an array or a double len(degree) = len(domain) - 1
@@ -75,8 +76,8 @@ def polyfit(x, y, degree=1, domain=None):
 
 
 def polyfit_global(x, y, degree=1, domain=None):
-    """Degree n least squares polynomial approximation of data y taken on points x
-    in a domain.
+    """Degree n least squares polynomial approximation of data y taken on points x in a domain.
+
     :param xdata: x-values, np array
     :param ydata: y-values, i.e., data values, np array
     :param degree: degree of approximation, an integer
