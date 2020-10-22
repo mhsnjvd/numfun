@@ -28,4 +28,6 @@ jobs:
         make mypy
     - name: Test
       run: |
+        pwd
+        export PYTHONPATH=".":$PYTHONPATH
         pytest tests/ -v
