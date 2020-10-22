@@ -1,20 +1,22 @@
-import numpy as np
-from scipy.linalg import eig
-from scipy.interpolate import CubicSpline
-import matplotlib.pyplot as plt
 import copy
 import types
 from collections.abc import Iterable
 from functools import wraps
-from numfun.chebyshev import chebyshev_values_to_coefficients
-from numfun.chebyshev import chebyshev_coefficients_to_values
+
+import matplotlib.pyplot as plt
+import numpy as np
+from scipy.interpolate import CubicSpline
+from scipy.linalg import eig
+
 from numfun.chebyshev import chebyshev_barycentric_interpolation
-from numfun.chebyshev import chebyshev_coefficients_of_derivative
-from numfun.chebyshev import chebyshev_points
 from numfun.chebyshev import chebyshev_clenshaw_evaluation
-from numfun.chebyshev import chebyshev_definite_integral
+from numfun.chebyshev import chebyshev_coefficients_of_derivative
 from numfun.chebyshev import chebyshev_coefficients_of_integral
+from numfun.chebyshev import chebyshev_coefficients_to_values
+from numfun.chebyshev import chebyshev_definite_integral
+from numfun.chebyshev import chebyshev_points
 from numfun.chebyshev import chebyshev_to_monomial_coefficients
+from numfun.chebyshev import chebyshev_values_to_coefficients
 
 
 def scalar_vector_mix(func):

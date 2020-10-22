@@ -1,26 +1,28 @@
-import numpy as np
-from numba import njit
-from numfun.barycentric import barycentric_interpolation
 from functools import wraps
 
+import numpy as np
+from numba import njit
 
-def complexify(f):
+from numfun.barycentric import barycentric_interpolation
+
+
+def complexify(func):
     """Decorator to apply f on real and imaginary parts and the return the sum
-    :param f: A linear operator such that f(a+ib) = f(a) + i f(b)
+    :param func: A linear operator such that f(a+ib) = f(a) + i f(b)
     :return: a function which adds f(real(input)) + 1j * f(imag(input))
     """
-    @wraps(f)
+    @wraps(func)
     def wrapper(c):
         """c is a complex input array"""
         # Make sure c is a numpy array
         c = 1.0 * np.array(c)
         if np.all(np.isreal(c)):
-            return f(c.real)
+            return func(c.real)
         elif np.all(np.isreal(1j * c)):
-            return 1j * f(c.imag)
+            return 1j * func(c.imag)
         else:
-            u = f(c.real)
-            v = f(c.imag)
+            u = func(c.real)
+            v = func(c.imag)
             return u + 1j * v
 
     return wrapper
@@ -581,7 +583,3 @@ def chebyshev_to_monomial_coefficients(c: np.array):
             tnold1 = np.copy(tn)
 
     return out[::-1]
-
-
-
-
