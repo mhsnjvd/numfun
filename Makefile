@@ -1,6 +1,10 @@
+# # Make sure to set the below in your .bashrc
+# PYENV=<path to your environment>  # e.g. PYENV="/d/Anaconda3/envs/ws"
+# export PATH="$PYENV/Scripts":"$PYENV/bin":$PATH
+
 # FORMAT ---------------------------------------------------------------------------------------------------------------
 docformatter:
-	docformatter numfun/ tests/ --wrap-summaries=120 --wrap-descriptions=120
+	docformatter -r . --in-place --wrap-summaries=120 --wrap-descriptions=120
 
 isort:
 	isort numfun/ tests/ -m 4 -l 120
@@ -9,7 +13,7 @@ fmt: docformatter isort
 
 # LINT -----------------------------------------------------------------------------------------------------------------
 docformatter-check:
-	docformatter --check numfun/ tests/ --wrap-summaries=120 --wrap-descriptions=120
+	docformatter -r . --check --wrap-summaries=120 --wrap-descriptions=120
 
 isort-check:
 	isort --check-only numfun/ tests/ -m 4 -l 120
