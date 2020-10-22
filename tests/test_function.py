@@ -90,15 +90,15 @@ def test_construction_adaptive() -> None:
 
 def test_addition() -> None:
     """Test that it can sum a list of fractions."""
-    f = Function(lambda x: x)
-    g = Function(lambda x: -x)
-    h = f + g
-    assert h.iszero()
-    f = Function(lambda x: np.exp(-10*x**2))
-    g = Function(lambda x: np.sin(2.7181828*np.pi*x))
-    h = f + g
+    f1 = Function(lambda x: x)
+    g1 = Function(lambda x: -x)
+    h1 = f1 + g1
+    assert h1.iszero()
+    f2 = Function(lambda x: np.exp(-10*x**2))
+    g2 = Function(lambda x: np.sin(2.7181828*np.pi*x))
+    h2 = f2 + g2
     xx = np.linspace(-1, 1, 201 + np.random.randint(0, 10))
-    error = f(xx) + g(xx) - h(xx)
+    error = f2(xx) + g2(xx) - h2(xx)
     assert np.linalg.norm(error, np.inf) < 100 * 1e-16
 
 
@@ -106,22 +106,22 @@ def test_abs() -> None:
     x_ = -1 + 2.0 * np.random.rand(100)
     # Test a positive function:
 
-    def F(x):  # noqa
+    def F1(x):  # noqa
         return np.sin(x) + 2.0
-    f = Function(lambda x: F(x))
+    f = Function(lambda x: F1(x))
     h = f.abs()
     assert np.linalg.norm(h(x_) - f(x_), np.inf) < 10 * np.spacing(1)
 
     # Test a negative function:
-    f2 = Function(lambda x: -F(x))
+    f2 = Function(lambda x: -F1(x))
     h = f2.abs()
     assert np.linalg.norm(h(x_) + f2(x_), np.inf) < 10 * np.spacing(1)
 
     # Test a complex-valued function:
 
-    def F(x_):  # noqa
+    def F2(x_):  # noqa
         return np.exp(1.0j * np.pi * x_)
-    f = Function(lambda x: F(x))
+    f = Function(lambda x: F2(x))
     h = f.abs()
     assert np.linalg.norm(h(x_) - 1.0, np.inf) < 1e2 * np.spacing(1)
 
@@ -150,37 +150,37 @@ def test_add() -> None:
 
     # Check operation in the face of empty arguments.
 
-    f = Function()
-    g = Function(lambda x: x)
-    assert len(f + f) == 0
-    assert len(f + g) == 0
-    assert len(g + f) == 0
+    f1 = Function()
+    g1 = Function(lambda x: x)
+    assert len(f1 + f1) == 0
+    assert len(f1 + g1) == 0
+    assert len(g1 + f1) == 0
 
     # Check addition of two function objects.
 
-    def f_op(x):
+    def f_op2(x):
         return np.zeros(len(x))
-    f = Function(f_op)
-    assert check_add_function_to_function(f, f_op, f, f_op, x_)
+    f2 = Function(f_op2)
+    assert check_add_function_to_function(f2, f_op2, f2, f_op2, x_)
 
-    def f_op(x):
+    def f_op3(x):
         return np.exp(x) - 1.0
-    f = Function(f_op)
+    f3 = Function(f_op3)
 
-    def g_op(x):
+    def g_op3(x):
         return 1.0 / (1.0 + x ** 2)
-    g = Function(g_op)
-    assert check_add_function_to_function(f, f_op, g, g_op, x_)
+    g3 = Function(g_op3)
+    assert check_add_function_to_function(f3, f_op3, g3, g_op3, x_)
 
-    def g_op(x):
+    def g_op4(x):
         return np.cos(1e4 * x)
-    g = Function(g_op)
-    assert check_add_function_to_function(f, f_op, g, g_op, x_)
+    g4 = Function(g_op4)
+    assert check_add_function_to_function(f3, f_op3, g4, g_op4, x_)
 
-    def g_op(t):
+    def g_op5(t):
         return np.sinh(t * np.exp(2.0 * np.pi * 1.0j / 6.0))
-    g = Function(g_op)
-    assert check_add_function_to_function(f, f_op, g, g_op, x_)
+    g5 = Function(g_op5)
+    assert check_add_function_to_function(f3, f_op3, g5, g_op5, x_)
 
     # Check that direct construction and PLUS give comparable results.
     tol = 10 * np.spacing(1)
@@ -285,29 +285,29 @@ def test_sub() -> None:
 
     # Check subtraction of two function objects.
 
-    def f_op(x):
+    def f_op1(x):
         return np.zeros(len(x))
-    f = Function(f_op)
-    assert check_sub_function_and_function(f, f_op, f, f_op, x_)
+    f1 = Function(f_op1)
+    assert check_sub_function_and_function(f1, f_op1, f1, f_op1, x_)
 
-    def f_op(x):
+    def f_op2(x):
         return np.exp(x) - 1
-    f = Function(f_op)
+    f2 = Function(f_op2)
 
-    def g_op(x):
+    def g_op1(x):
         return 1.0 / (1 + x ** 2)
-    g = Function(g_op)
-    assert check_sub_function_and_function(f, f_op, g, g_op, x_)
+    g1 = Function(g_op1)
+    assert check_sub_function_and_function(f2, f_op2, g1, g_op1, x_)
 
-    def g_op(x):
+    def g_op2(x):
         return np.cos(1e4 * x)
-    g = Function(g_op)
-    assert check_sub_function_and_function(f, f_op, g, g_op, x_)
+    g2 = Function(g_op2)
+    assert check_sub_function_and_function(f2, f_op2, g2, g_op2, x_)
 
-    def g_op(t):
+    def g_op3(t):
         return np.sinh(t * np.exp(2.0 * np.pi * 1.0j / 6.0))
-    g = Function(g_op)
-    assert check_sub_function_and_function(f, f_op, g, g_op, x_)
+    g3 = Function(g_op3)
+    assert check_sub_function_and_function(f2, f_op2, g3, g_op3, x_)
 
     # Check that direct construction and the binary minus op give comparable results.
 
@@ -387,81 +387,81 @@ def test_mul() -> None:
 
     # Check operation in the face of empty arguments.
 
-    f = Function()
-    g = Function(lambda x: x)
-    assert len(f * f) == 0
-    assert len(f * g) == 0
-    assert len(g * f) == 0
+    f1 = Function()
+    g1 = Function(lambda x: x)
+    assert len(f1 * f1) == 0
+    assert len(f1 * g1) == 0
+    assert len(g1 * f1) == 0
 
     # Check multiplication by constant functions.
 
-    def f_op(x):
+    def f_op2(x):
         return np.sin(x)
-    f = Function(f_op)
+    f2 = Function(f_op2)
 
-    def g_op(x):
+    def g_op2(x):
         return np.zeros(len(x)) + alpha
-    g = Function(g_op)
-    assert check_mul_function_by_function(f, f_op, g, g_op, x_, False)
+    g2 = Function(g_op2)
+    assert check_mul_function_by_function(f2, f_op2, g2, g_op2, x_, False)
 
     # Spot-check multiplication of two function objects for a few test
     # functions.
 
-    def f_op(x):
+    def f_op3(x):
         return np.ones(len(x))
-    f = Function(f_op)
-    assert check_mul_function_by_function(f, f_op, f, f_op, x_, False)
+    f3 = Function(f_op3)
+    assert check_mul_function_by_function(f3, f_op3, f3, f_op3, x_, False)
 
-    def f_op(x):
+    def f_op4(x):
         return np.exp(x) - 1.0
-    f = Function(f_op)
+    f4 = Function(f_op4)
 
-    def g_op(x):
+    def g_op3(x):
         return 1.0 / (1.0 + x ** 2)
-    g = Function(g_op)
-    assert check_mul_function_by_function(f, f_op, g, g_op, x_, False)
+    g3 = Function(g_op3)
+    assert check_mul_function_by_function(f4, f_op4, g3, g_op3, x_, False)
 
     # If f and g are real then so must be f * g
-    h = f * g
+    h = f4 * g3
     assert h.isreal()
 
-    def g_op(x):
+    def g_op4(x):
         return np.cos(1.0e4 * x)
-    g = Function(g_op)
-    assert check_mul_function_by_function(f, f_op, g, g_op, x_, False)
+    g4 = Function(g_op4)
+    assert check_mul_function_by_function(f4, f_op4, g4, g_op4, x_, False)
 
-    def g_op(t):
+    def g_op5(t):
         return np.sinh(t * np.exp(2.0 * np.pi * 1.0j / 6.0))
-    g = Function(g_op)
-    assert check_mul_function_by_function(f, f_op, g, g_op, x_, False)
+    g5 = Function(g_op5)
+    assert check_mul_function_by_function(f4, f_op4, g5, g_op5, x_, False)
 
     # Check specially handled cases, including some in which an adjustment for
     # positivity is performed.
 
-    def f_op(t):
+    def f_op5(t):
         return np.sinh(t * np.exp(2.0 * np.pi * 1.0j / 6.0))
-    f = Function(f_op)
-    assert check_mul_function_by_function(f, f_op, f, f_op, x_, False)
+    f5 = Function(f_op5)
+    assert check_mul_function_by_function(f5, f_op5, f5, f_op5, x_, False)
 
-    def g_op(t):
+    def g_op6(t):
         return np.conjugate(np.sinh(t * np.exp(2.0 * np.pi * 1.0j / 6.0)))
-    g = f.conj()
-    assert check_mul_function_by_function(f, f_op, g, g_op, x_, True)
+    g6 = f5.conj()
+    assert check_mul_function_by_function(f5, f_op5, g6, g_op6, x_, True)
 
-    def f_op(x):
+    def f_op7(x):
         return np.exp(x) - 1.0
-    f = Function(f_op)
-    assert check_mul_function_by_function(f, f_op, f, f_op, x_, True)
+    f7 = Function(f_op7)
+    assert check_mul_function_by_function(f7, f_op7, f7, f_op7, x_, True)
 
     # Check that multiplication and direct construction give similar results.
 
     tol = 50 * np.spacing(1)
 
-    def g_op(x):
+    def g_op7(x):
         return 1.0 / (1.0 + x ** 2)
-    g = Function(g_op)
-    h1 = f * g
-    h2 = Function(lambda x: f_op(x) * g_op(x))
+    g7 = Function(g_op7)
+    h1 = f7 * g7
+    h2 = Function(lambda x: f_op7(x) * g_op7(x))
     h2 = h2.prolong(len(h1))
     assert np.linalg.norm(h1.coefficients[0] - h2.coefficients[0], np.inf) < tol
 

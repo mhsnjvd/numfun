@@ -86,9 +86,9 @@ def chebyshev_definite_integral(coefficients: np.array) -> float:
     n = len(coefficients)
     # Get the length of the coefficients:
     if n == 0:  # Trivial cases:
-        return np.nan  # type: float
+        return np.nan
     if n == 1:  # Constant Function
-        return 2.0 * coefficients[0]  # type: float
+        return 2.0 * coefficients[0]
 
     # General case
     c = np.zeros((n,))
@@ -103,7 +103,7 @@ def chebyshev_definite_integral(coefficients: np.array) -> float:
     # k = 0 and k = 1 are handled separately
     d[:2] = [2.0, 0.0]
     d[2:n] = 2.0 / (1.0 - np.arange(2.0, n) ** 2)
-    return np.dot(d, c)  # type: float
+    return np.dot(d, c)
 
 
 @complexify
