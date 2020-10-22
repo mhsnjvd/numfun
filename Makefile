@@ -44,6 +44,6 @@ clean-build:
 
 
 # OTHERS  --------------------------------------------------------------------------------------------------------------
-pre-commit: mypy flake8
+pre-commit: mypy flake8 isort docformatter
 
 check-all: mypy lint
