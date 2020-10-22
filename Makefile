@@ -24,7 +24,7 @@ flake8:
 pylint:
 	pylint numfun/ tests/ --rcfile=build-support/.pylintrc
 
-lint: flake8 docformatter-check  # pylint
+lint: flake8 docformatter-check isort-check # pylint
 
 # TYPE CHECK -----------------------------------------------------------------------------------------------------------
 mypy:
