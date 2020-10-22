@@ -807,6 +807,7 @@ class Fun:
 
     def minandmax(self):
         """Global minimum and maximum on [-1,1]. returns a tuple (vals, pos). vals is a numpy array of length 2:
+
         [min(f), max(f)] with the global minimum and maximum of the f on [-1,1].
 
         pos is a numpy array of length 2: [argmin(f), argmax(f)]

@@ -21,13 +21,10 @@ isort-check:
 flake8:
 	flake8 . --config=build-support/.flake8
 
-bandit:
-	bandit -r . --configfile build-support/.bandit.yml
-
 pylint:
 	pylint numfun/ tests/ --rcfile=build-support/.pylintrc
 
-lint: flake8 bandit pylint docformatter-check
+lint: flake8 docformatter-check  # pylint
 
 # TYPE CHECK -----------------------------------------------------------------------------------------------------------
 mypy:

@@ -12,3 +12,7 @@ disable=
     missing-function-docstring,
     missing-class-docstring,
     fixme,
+    # Not good to disable invalid-name => should be temporary
+    invalid-name,
+    # Allow LaTeX in docstrings and comments
+    anomalous-backslash-in-string,

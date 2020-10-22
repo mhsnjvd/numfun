@@ -19,12 +19,11 @@ def complexify(func):
         c = 1.0 * np.array(c)
         if np.all(np.isreal(c)):
             return func(c.real)
-        elif np.all(np.isreal(1j * c)):
+        if np.all(np.isreal(1j * c)):
             return 1j * func(c.imag)
-        else:
-            u = func(c.real)
-            v = func(c.imag)
-            return u + 1j * v
+        u = func(c.real)
+        v = func(c.imag)
+        return u + 1j * v
 
     return wrapper
 

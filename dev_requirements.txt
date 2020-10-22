@@ -1,0 +1,11 @@
+flake8
+pylint
+mypy
+docformatter
+isort
+
+numpy
+scipy
+matplotlib
+numba
+setuptools

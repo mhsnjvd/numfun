@@ -3,10 +3,7 @@ from numba import njit
 
 
 @njit
-def barycentric_interpolation_jit(x: np.array,
-                                  fvals: np.array,
-                                  xk: np.array,
-                                  wk: np.array) -> np.array:
+def barycentric_interpolation_jit(x: np.array, fvals: np.array, xk: np.array, wk: np.array) -> np.array:
     """See the non-jitted version for documentation.
 
     This is the jit enabled main workhorse code
@@ -19,8 +16,8 @@ def barycentric_interpolation_jit(x: np.array,
         fx = np.zeros((len(x),))
 
         # Loop:
-        for j in range(0, len(x)):
-            xx = wk / (x[j] - xk)
+        for j, x_j in enumerate(x):
+            xx = wk / (x_j - xk)
             fx[j] = np.dot(xx, fvals) / xx.sum()
     else:
         # Loop over barycentric nodes
