@@ -78,8 +78,6 @@ def test_values_to_coefficients() -> None:
 
 
 def test_chebyshev_points() -> None:
-    tol = 10 * np.spacing(1)
-
     # Test that n = 0 returns empty results:
     x = chebyshev.chebyshev_points(0)
     assert x.size == 0
@@ -113,7 +111,7 @@ def test_alias() -> None:
     tol = 100 * np.spacing(1)
 
     # Testing a vector of coefficients.
-    c0 = np.r_[10.0:0.0:-1]
+    c0 = np.r_[10:0:-1]
 
     # Padding:
     c1 = chebyshev.alias_chebyshev_coefficients(c0, 11)
@@ -121,7 +119,7 @@ def test_alias() -> None:
 
     # Aliasing:
     c2 = chebyshev.alias_chebyshev_coefficients(c0, 9)
-    assert linalg.norm(np.r_[10.0:3.0:-1, 4.0, 2.0] - c2, np.inf) == 0.0
+    assert linalg.norm(np.r_[10:3:-1, 4.0, 2.0] - c2, np.inf) == 0.0
     c3 = chebyshev.alias_chebyshev_coefficients(c0, 3)
     assert linalg.norm(np.array([18.0, 25.0, 12.0]) - c3, np.inf) == 0.0
 
@@ -139,7 +137,6 @@ def test_alias() -> None:
     c1 = chebyshev.alias_chebyshev_coefficients(c0, n)
     assert len(c1) == n
     # This should give the same result as evaluating via clenshaw
-    v0 = chebyshev.chebyshev_coefficients_to_values(c0)
     v2 = chebyshev.chebyshev_clenshaw_evaluation(chebyshev.chebyshev_points(n), c0)
     c2 = chebyshev.chebyshev_values_to_coefficients(v2)
     assert linalg.norm(c1 - c2, np.inf) < n*tol
@@ -149,11 +146,10 @@ def test_derivative() -> None:
     tol = 100 * np.spacing(1)
 
     # Testing a vector of coefficients.
-    c = []
-    d = chebyshev.chebyshev_coefficients_of_derivative(c)
+    d = chebyshev.chebyshev_coefficients_of_derivative([])
     assert len(d) == 0
 
-    c = [0.0]
+    c = np.array([0.0])
     d = chebyshev.chebyshev_coefficients_of_derivative(c)
     assert np.array_equal(c, d)
 
@@ -174,10 +170,15 @@ def test_derivative() -> None:
 
     # This function takes about 41 points to resolve:
     xx = np.linspace(-1.0, 1.0, 2001)
-    f = lambda x: x + np.sin(2.0 * np.pi * x) + np.cos(2.0 * np.pi * x**2)
-    fp = lambda x: 1.0 + 2.0 * np.pi * np.cos(2.0 * np.pi * x) - 4.0 * np.pi * x * np.sin(2.0 * np.pi * x**2)
-    x = chebyshev.chebyshev_points(60)
-    c = chebyshev.chebyshev_values_to_coefficients(f(x))
+
+    def f(x):
+        return x + np.sin(2.0 * np.pi * x) + np.cos(2.0 * np.pi * x**2)
+
+    def fp(x):
+        return 1.0 + 2.0 * np.pi * np.cos(2.0 * np.pi * x) - 4.0 * np.pi * x * np.sin(2.0 * np.pi * x**2)
+
+    x_ = chebyshev.chebyshev_points(60)
+    c = chebyshev.chebyshev_values_to_coefficients(f(x_))
     d = chebyshev.chebyshev_coefficients_of_derivative(c)
 
     error = chebyshev.chebyshev_clenshaw_evaluation(xx, c) - f(xx)
@@ -190,11 +191,10 @@ def test_cumsum() -> None:
     tol = 100 * np.spacing(1)
 
     # Testing a vector of coefficients.
-    c = []
-    d = chebyshev.chebyshev_coefficients_of_integral(c)
+    d = chebyshev.chebyshev_coefficients_of_integral([])
     assert len(d) == 0
 
-    c = [0.0]
+    c = np.array([0.0])
     d = chebyshev.chebyshev_coefficients_of_integral(c)
     assert np.array_equal(np.array([0.0, 0.0]), d)
 
@@ -210,12 +210,19 @@ def test_cumsum() -> None:
     assert np.array_equal(np.array([-1.0/4.0, 0.0, 1.0/4.0]), d)
 
     # This function takes about 41 points to resolve:
-    xx = np.linspace(-1.0 , 1.0 , 2001)
-    f = lambda x: 1.0 + 2.0 *np.pi*np.cos(2.0 *np.pi*x) - 4.0 *np.pi*x*np.sin(2.0 *np.pi*x**2)
-    F = lambda x: x + np.sin(2.0 *np.pi*x) + np.cos(2.0 *np.pi*x**2)
-    integral = lambda x: F(x) - F(-1)
-    x = chebyshev.chebyshev_points(60)
-    c = chebyshev.chebyshev_values_to_coefficients(f(x))
+    xx = np.linspace(-1.0, 1.0, 2001)
+
+    def f(x):
+        return 1.0 + 2.0 * np.pi*np.cos(2.0 * np.pi * x) - 4.0 * np.pi * x * np.sin(2.0 * np.pi * x**2)
+
+    def F(x):  # noqa
+        return x + np.sin(2.0 * np.pi*x) + np.cos(2.0 * np.pi*x**2)
+
+    def integral(x):
+        return F(x) - F(-1)
+
+    x_ = chebyshev.chebyshev_points(60)
+    c = chebyshev.chebyshev_values_to_coefficients(f(x_))
     d = chebyshev.chebyshev_coefficients_of_integral(c)
 
     error = chebyshev.chebyshev_clenshaw_evaluation(xx, c) - f(xx)

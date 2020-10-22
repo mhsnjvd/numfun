@@ -1,0 +1,14 @@
+[FORMAT]
+max-line-length=120
+
+good-names=
+    df,i,j,
+    f,g,
+    x,y,z,t,xx,x_,
+    F,G,T,
+
+disable=
+    missing-module-docstring,
+    missing-function-docstring,
+    missing-class-docstring,
+    fixme,

@@ -1,15 +1,17 @@
+from typing import cast, List
+
 import numpy as np
 from numba import njit
 
 
-#@njit
-def split_array_at_boundaries(x: np.array, boundary: np.array, out: list):
+@njit
+def split_array_at_boundaries(x: np.array, boundary: np.array, out: List):
     m = len(boundary) - 1
     n = len(x)
     if n == 0 or m == 0:
         return
 
-    mask = np.zeros((n,))
+    # mask = np.zeros((n,))
     for k in range(m):
         a = boundary[k]
         b = boundary[k + 1]
@@ -17,8 +19,8 @@ def split_array_at_boundaries(x: np.array, boundary: np.array, out: list):
             mask = np.bitwise_and(a <= x, x <= b)
         else:
             mask = np.bitwise_and(a <= x, x < b)
-        nk = int(np.sum(mask))
-        xk = np.zeros((nk,))
+        # nk = int(np.sum(mask))
+        # xk = np.zeros((nk,))
         xk = x[mask]
         out.append(xk)
     return
@@ -61,7 +63,7 @@ def inf_norm_of_derivatives(f, domain=np.array([-1.0, 1.0]), order=4, grid_size=
 def detect_edge(f, domain=np.array([-1.0, 1.0]), v_scale=1.0, h_scale=2.0) -> float:
 
     # By default, there is no edge
-    edge = np.nan
+    # edge = np.nan
 
     order = 4                   # Maximum number of derivatives to be tested.
     grid_size_1 = 50            # Grid size for 1st finite difference computations.
@@ -72,9 +74,7 @@ def detect_edge(f, domain=np.array([-1.0, 1.0]), v_scale=1.0, h_scale=2.0) -> fl
 
     ends = np.array([new_a[-1], new_b[-1]])
 
-    while (not np.isinf(max_der[-1]) and
-           not np.isnan(max_der[-1]) and
-           np.diff(ends)[0] > np.spacing(1) * h_scale):
+    while not np.isinf(max_der[-1]) and not np.isnan(max_der[-1]) and np.diff(ends)[0] > np.spacing(1) * h_scale:
 
         # Keep track of previous max derivatives:
         max_der_prev = max_der.copy()
@@ -90,20 +90,21 @@ def detect_edge(f, domain=np.array([-1.0, 1.0]), v_scale=1.0, h_scale=2.0) -> fl
 
         if len(nz) == 0:
             # Derivatives are not growing;
-            return np.zeros((0,))
+            return cast(float, np.zeros((0,)))
         else:
             order = nz[0] + 1
 
-        if (order == 1) and (np.diff(ends)[0] < 1e-3*h_scale):
-            edge = find_discontinuity(f, ends, v_scale, h_scale)
+        # TODO code below is not used
+        # if (order == 1) and (np.diff(ends)[0] < 1e-3*h_scale):
+        #     edge = find_discontinuity(f, ends, v_scale, h_scale)
 
-        ends = np.array([new_a[order-1],  new_b[order-1]])
+        ends = np.array([new_a[order-1], new_b[order-1]])
 
     edge = np.mean(ends)
-    return edge
+    return cast(float, edge)
 
 
-def find_discontinuity(f, domain=np.array([-1.0, 1.0]), v_scale=1.0, h_scale=2.0):
+def find_discontinuity(f, domain=np.array([-1.0, 1.0]), v_scale: float = 1.0, h_scale: float = 2.0):
     a = domain[0]
     b = domain[-1]
 

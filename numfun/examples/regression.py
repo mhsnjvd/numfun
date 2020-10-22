@@ -16,7 +16,9 @@ y = y_noisy(x)
 
 # % interpolation in equidistant points doesn't really
 # work:
-f = lambda xx: barycentric_interpolation(xx, y, x)
+def f(xx):
+    return barycentric_interpolation(xx, y, x)
+
 g = Function(f, length=len(y), domain=[0, 5])
 g.plot()
 plt.plot(x, y, 'g.', x, y - w, 'k--', x, g(x), 'r.')

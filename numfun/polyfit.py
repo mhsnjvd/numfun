@@ -1,7 +1,9 @@
-import numpy as np
-from numfun.function import Function
-from numba import njit
 from collections.abc import Iterable
+
+import numpy as np
+from numba import njit
+
+from numfun.function import Function
 
 
 @njit
@@ -15,21 +17,21 @@ def polyfit_jit(x: np.array, y: np.array, n: int, a: float, b: float) -> tuple:
     :return: the output of np.linalg.lstsq()
     """
     m = len(x)
-    Tx = np.zeros((m, n + 1))
-    Tx[:, 0] = np.ones(m)
+    tx = np.zeros((m, n + 1))
+    tx[:, 0] = np.ones(m)
     x_map = 2.0 * (x - a) / (b - a) - 1.0
-    Tx[:, 1] = x_map
+    tx[:, 1] = x_map
     for k in range(1, n):
-        Tx[:, k + 1] = 2.0 * x_map * Tx[:, k] - Tx[:, k-1]
+        tx[:, k + 1] = 2.0 * x_map * tx[:, k] - tx[:, k-1]
 
     # TODO: this is not compiling :(
     # Initialize variables for jit:
-    c = np.zeros((n+1,))
-    residuals = np.zeros((1,))
-    rank = int(0)
-    singular_values = np.zeros((n+1,))
+    c = np.zeros((n+1,))  # noqa
+    residuals = np.zeros((1,))  # noqa
+    rank = int(0)  # noqa
+    singular_values = np.zeros((n+1,))  # noqa
 
-    c, residuals, rank, singular_values = np.linalg.lstsq(Tx, y, rcond=None)
+    c, residuals, rank, singular_values = np.linalg.lstsq(tx, y, rcond=None)
 
     return c, residuals, rank, singular_values
 
@@ -50,7 +52,7 @@ def polyfit(x, y, degree=1, domain=None):
         n_pieces = len(domain) - 1
         if isinstance(degree, Iterable):
             # A list of degrees is passed
-            assert n_pieces == len(degree), f'must specify degree for each domain'
+            assert n_pieces == len(degree), 'must specify degree for each domain'
         else:
             # the degree passed is just an integer
             degree = n_pieces * [int(degree)]
@@ -79,7 +81,7 @@ def polyfit_global(x, y, degree=1, domain=None):
     :param ydata: y-values, i.e., data values, np array
     :param degree: degree of approximation, an integer
     :param domain: domain of approximation
-    :return: 
+    :return:
     """
 
     if domain is None:
@@ -112,23 +114,24 @@ def polyfit_global(x, y, degree=1, domain=None):
     return f
 
 
-if __name__ == '__main__':
+def main():
     import matplotlib.pyplot as plt
     x = np.linspace(0, 10, 11)
-    y = x**2
+    y = x ** 2
     n = 2
     domain = [0, 10]
-    a = domain[0]
-    b = domain[-1]
     f = polyfit(x, y, n, domain)
     plt.plot(x, y, '.')
     f.plot()
 
     x = np.linspace(0, 5, 201)
-    y = x * (x < 2.0) + x**2 * ((x >= 2.0) & (x < 3.0)) + \
-        x**3 * ((x >= 3.0) & (x < 4.0)) + x**4 * (x >= 4.0)
+    y = x * (x < 2.0) + x ** 2 * ((x >= 2.0) & (x < 3.0)) + \
+        x ** 3 * ((x >= 3.0) & (x < 4.0)) + x ** 4 * (x >= 4.0)
     domain = [0, 1, 2, 3, 4, 5]
     degrees = [0, 1, 2, 3, 4]
     f = polyfit(x, y, degree=degrees, domain=domain)
     f.plot()
 
+
+if __name__ == '__main__':
+    main()

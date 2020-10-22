@@ -69,7 +69,8 @@ def barycentric_interpolation(x: np.array,
     wk = wk or barycentric_weights(xk)
 
     assert len(xk) == len(wk), f'xk and wk must be of the same length: len(xk) = {len(xk)} but len(wk) = {len(wk)}'
-    assert len(xk) == len(fvals), f'xk and fvals must be of the same length: len(xk) = {len(xk)} but len(fvals) = {len(fvals)}'
+    assert len(xk) == len(fvals), f'xk and fvals must be of the same length: ' \
+                                  f'len(xk) = {len(xk)} but len(fvals) = {len(fvals)}'
 
     # Trivial case
     if len(x) == 0:

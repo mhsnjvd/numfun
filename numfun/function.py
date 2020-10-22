@@ -20,7 +20,7 @@ from numfun.chebyshev import chebyshev_values_to_coefficients
 
 
 def scalar_vector_mix(func):
-    """Decorator which returns scalars for 
+    """Decorator which returns scalars for
     scalars and vectors for vectors. Assumes
     that f can only accept and return vector
     :param func: function to be decorated
@@ -97,8 +97,10 @@ class Fun:
 
     @coefficients.setter
     def coefficients(self, coeffs: np.array):
-        assert isinstance(coeffs, type(np.zeros(0,))), f'coefficients must be 1-dimensional numpy array, type of input coefficients is {type(coeffs)}'
-        assert len(coeffs.shape) == 1, f'coefficients must be 1-dimensional numpy array, shape of input coefficients is {coeffs.shape}'
+        assert isinstance(coeffs, type(np.zeros(0,))), f'coefficients must be 1-dimensional numpy array, ' \
+                                                       f'type of input coefficients is {type(coeffs)}'
+        assert len(coeffs.shape) == 1, f'coefficients must be 1-dimensional numpy array, s' \
+                                       f'hape of input coefficients is {coeffs.shape}'
         self.__coefficients = coeffs.copy()
 
     @property
@@ -108,7 +110,8 @@ class Fun:
     # TODO: work on this to allow construction from arbitrary points
     # @points.setter
     # def points(self, pts: np.array):
-    #     assert isinstance(pts, type(np.zeros(0,))), f'points must be 1-dimensional numpy array, type of input points is {type(pts)}'
+    #     assert isinstance(pts, type(np.zeros(0,))), f'points must be 1-dimensional numpy array, ' \
+    #                                                 f'type of input points is {type(pts)}'
     #     assert len(pts.shape) == 1, f'points must be 1-dimensional numpy array, shape of input points is {pts.shape}'
     #     self.__points = pts
 
@@ -139,9 +142,10 @@ class Fun:
         #     # Try to convert it to a lambda (naive)
         #     op = eval('lambda x: ' + op)
 
-        ######################## Non Adaptive construction. ###################
+        # ####################### Non Adaptive construction. ###################
         if length is not None:
-            assert (length == np.round(length)) and length >= 0, f'length must be a non-negative int, input length = {length}'
+            assert (length == np.round(length)) and length >= 0, f'length must be a non-negative int, ' \
+                                                                 f'input length = {length}'
             if length == 0:
                 # Special case
                 self.coefficients = np.zeros((0,))
@@ -152,7 +156,8 @@ class Fun:
 
             self.resolved = True
             return
-        ######################### Adaptive construction. ######################
+
+        # ######################## Adaptive construction. ######################
         # Initialise empty values to pass to refine:
         values = None
         v_scale = 0.0
@@ -224,7 +229,8 @@ class Fun:
             self.resolved = True
 
         if fun is not None:
-            assert len(coefficients) == 0, f'function passed, coefficents must be empty, however, coefficents = {coefficients}'
+            assert len(coefficients) == 0, f'function passed, coefficents must be empty, however, ' \
+                                           f'coefficents = {coefficients}'
             assert len(values) == 0, f'function passed, values must be empty, however, input_values = {values}'
             assert len(points) == 0, f'function passed, points must be empty, however, input_points = {points}'
 
@@ -233,9 +239,9 @@ class Fun:
             assert length is None, f'length can only be used if a fun is passed. Input length = {length}'
 
         if len(coefficients) > 0:
-            assert fun is None, f'coefficients passed, coefficients must be empty, however, coefficients = {coefficients}'
-            assert len(values) == 0, f'coefficients passed, values must be empty, however, input_values = {values}'
-            assert len(points) == 0, f'coefficients passed, points must be empty, however, input_points = {points}'
+            assert fun is None, f'coefficients passed, coefficients must be empty, however, coefficients={coefficients}'
+            assert len(values) == 0, f'coefficients passed, values must be empty, however, input_values={values}'
+            assert len(points) == 0, f'coefficients passed, points must be empty, however, input_points={points}'
             self.coefficients = coefficients
             self.resolved = True
 
@@ -247,7 +253,7 @@ class Fun:
                 self.function = lambda x: chebyshev_barycentric_interpolation(x, values)
                 self.resolved = True
             else:
-                assert len(values) == len(points), f'values and points must have same length'
+                assert len(values) == len(points), 'values and points must have same length'
                 # TODO: not implemented yet
         elif len(values) == 0:
             assert len(points) == 0, f'no values passed, can not pass points, points passed = {points}'
@@ -268,9 +274,9 @@ class Fun:
             values = self.coefficients_to_values()
         return chebyshev_values_to_coefficients(values.copy())
 
-    #############################################################
-    ######## section: plotting for Fun class          ###########
-    #############################################################
+    # #############################################################
+    # ######## section: plotting for Fun class          ###########
+    # #############################################################
     def plot(self, *args, **kwargs):
         a, b = self.domain[0], self.domain[-1]
         x = np.linspace(a, b, 2001)
@@ -286,7 +292,7 @@ class Fun:
     def plot_coefficients(self, *args, **kwargs):
         """Display Chebyshev coefficients.
         plots the Chebyshev coefficients of a Function f on a semilogy scale.
-        
+
         Note: to make the log of coefficients comparable, zero coefficients have a small
         value added to them (typically close to relative machine precision)).
         """
@@ -342,9 +348,9 @@ class Fun:
 
         return current_axis
 
-    ############################################################
-    ##########   Boolearn Operators          ###################
-    ############################################################
+    # ############################################################
+    # ############       Boolearn Operators        ###############
+    # ############################################################
     def __eq__(self, other):
         return self.isequal(other)
 
@@ -403,16 +409,16 @@ class Fun:
         # Check if any coefficients are NaN:
         return np.any(np.isnan(self.coefficients))
 
-    ############################################################
-    #######  section: operators that output a Fun ##############
-    ############################################################
+    # ############################################################
+    # #######  section: operators that output a Fun ##############
+    # ############################################################
     # NOTE:
     # These methods must generate the output by copying one of the
     # inputs to make sure that all classes which inherit from
     # this class work properly. (e.g., domain information
     # from the subclass "Function" might get destroyed if we
     # do not copy the input
-    ############################################################
+    # ###########################################################
     def prolong(self, n: int):
         result = self.copy()
         result.coefficients = self.prolong_coefficients(self.coefficients, n)
@@ -574,9 +580,9 @@ class Fun:
         fp.coefficients = c
         return fp
 
-    ############################################################
-    ###### section: operator overloads that output a Fun #######
-    ############################################################
+    # ############################################################
+    # ###### section: operator overloads that output a Fun #######
+    # ############################################################
     def __pos__(self):
         # TODO: to copy or not ot copy here?
         return self.copy()
@@ -653,7 +659,7 @@ class Fun:
             return self.__rmul__(other.coefficients[0])
         else:
             # General case
-            fc = np.r_[self.coefficients[:],  np.zeros((m+1,))]
+            fc = np.r_[self.coefficients[:], np.zeros((m+1,))]
             gc = np.r_[other.coefficients[:], np.zeros((n+1,))]
 
             # N = m + n + 1
@@ -675,11 +681,12 @@ class Fun:
             # Check for two cases where the output is known in advance to be positive,
             # namely f == conj(g) or (f == g and isreal(f)).
             # TODO: maybe we should switch from np.array_equal() to np.all_close()
-            result_is_positive = ((np.array_equal(self.coefficients, other.coefficients) and self.isreal())
-                                  or (np.array_equal(np.conjugate(self.coefficients), other.coefficients)))
+            result_is_positive = \
+                (np.array_equal(self.coefficients, other.coefficients) and self.isreal()) or \
+                (np.array_equal(np.conjugate(self.coefficients), other.coefficients))
 
             # [TODO] Update resolved:
-            #f.resolved = f.resolved and g.resolved
+            # f.resolved = f.resolved and g.resolved
 
             # we simplify here:
             result = result.simplify()
@@ -711,9 +718,9 @@ class Fun:
             result.coefficients = f_pow_a.coefficients.copy()
         return result
 
-    ############################################################
-    ##########   section: misc overloads               #########
-    ############################################################
+    # ############################################################
+    # ##########   section: misc overloads               #########
+    # ############################################################
     def __len__(self):
         return self.length
 
@@ -722,7 +729,7 @@ class Fun:
 
     def __repr__(self):
         s = f'Object of class Fun of length {self.length} on {self.domain}\n'
-        #if self.fun:
+        # if self.fun:
         #    fun_str = inspect.getsource(self.fun).split('=')[1]
         #    # Remove \n character at the end
         #    fun_str = fun_str[:-1]
@@ -749,13 +756,13 @@ class Fun:
         # Evaluate the object at the point(s) x:
         return self.evaluate(x)
 
-    ############################################################
-    ##########   section: methods that output numbers  #########
-    ############################################################
+    # ############################################################
+    # ##########   section: methods that output numbers  #########
+    # ############################################################
     # TODO: try using @scalar_vector_mix decorator
     def evaluate(self, x):
         """Evaluate the object at the point(s) x"""
-        
+
         x_is_scalar = not isinstance(x, Iterable)
 
         if x_is_scalar:
@@ -899,7 +906,7 @@ class Fun:
         def roots_main(c, htol):
             """Compute the roots of the polynomial given by the coefficients c on
             the unit interval."""
-       
+
             # Simplify the coefficients:
             tail_max = np.spacing(1) * np.abs(c).sum()
             # Find the final coefficient close to tail_max:
@@ -912,7 +919,7 @@ class Fun:
             # Truncate the coefficients:
             if 1 < n < len(c):
                 c = c[:n]
-       
+
             max_eig_size = 50
 
             if n == 0:
@@ -943,7 +950,7 @@ class Fun:
                 A[-2, -1] = 1.0
                 A[:, 0] = np.flipud(c)
 
-                if roots_pref['qz']: 
+                if roots_pref['qz']:
                     B = np.eye(A.shape[0], A.shape[1], dtype=A.dtype)
                     # c_old will be complex or real based on values in B
                     c_old = np.array(c_old / np.abs(c_old).max(), dtype=B.dtype)
@@ -956,7 +963,7 @@ class Fun:
                     r = eig(A)[0]
 
                 # Clean the roots up a bit:
-                if not roots_pref['all']: 
+                if not roots_pref['all']:
                     # Remove dangling imaginary parts:
                     mask = np.abs(r.imag) < htol
                     r = r[mask].real
@@ -978,13 +985,13 @@ class Fun:
                 x_right = chebptsAB(n, [split_point, 1])
                 xx = np.r_[x_left, x_right]
                 v = chebyshev_clenshaw_evaluation(xx, c)
-       
+
                 # Get the coefficients on the left:
                 c_left = chebyshev_values_to_coefficients(v[:n])
-       
+
                 # Get the coefficients on the right:
                 c_right = chebyshev_values_to_coefficients(v[n:])
-       
+
                 # Recurse:
                 r_left = roots_main(c_left, 2*htol)
                 r_right = roots_main(c_right, 2*htol)
@@ -1005,7 +1012,7 @@ class Fun:
         # Deal with the empty case:
         if len(self.coefficients) == 0:
             return np.zeros((0,))
-        
+
         # Default preferences:
         roots_pref = {'all': kwargs.setdefault('all', False),
                       'complex_roots': kwargs.setdefault('complex_roots', False),
@@ -1060,9 +1067,9 @@ class Fun:
 
         return out
 
-    ############################################################
-    ##########   section: constructor methods  #################
-    ############################################################
+    # ############################################################
+    # ##########   section: constructor methods  #################
+    # ############################################################
     def prolong_coefficients(self, c: np.array, n: int) -> np.array:
         """Manually adjust the number of points used in a Fun.
           prolong_coefficients(c, n) returns d where len(d) = n and d represents
@@ -1187,7 +1194,7 @@ class Fun:
         http://arxiv.org/abs/1512.01803, December 2015.
         """
 
-        # Set default if fewer than 2 inputs are supplied: 
+        # Set default if fewer than 2 inputs are supplied:
         # [TODO]: How to set tolerance to some default:
         if tol is None:
             tol = self.tolerance
@@ -1202,7 +1209,7 @@ class Fun:
         cutoff = n
         if n < self.minimum_samples:
             return cutoff
-          
+
         # Step 1: Convert coefficients to a new monotonically non-increasing
         # vector envelope normalized to begin with the value 1.
 
@@ -1285,7 +1292,7 @@ class Fun:
 
         # Check for resolution.
         resolved = (cutoff < n)
-        
+
         return resolved, cutoff
 
     def refine_by_resampling(self, op, values):
@@ -1302,7 +1309,7 @@ class Fun:
                 n = n - (n % 2) + 1
             else:
                 n = int(2.0**(np.floor(power) + 1) + 1)
-        
+
         # n is too large:
         if n > self.maximum_samples:
             # Don't give up if we haven't sampled at least once.
@@ -1314,11 +1321,11 @@ class Fun:
                 return values, give_up
         else:
             give_up = False
-       
+
         # 2nd-kind Chebyshev grid:
         x = chebyshev_points(n)
         values = op(x)
-        
+
         return values, give_up
 
     def refine_by_nesting(self, op, values):
@@ -1332,14 +1339,14 @@ class Fun:
         else:
             # Compute new n by doubling the existing n
             n = 2 * len(values) - 1
-            
+
             # n is too large and we could not resolve:
             if n > self.maximum_samples:
                 give_up = True
                 return values, give_up
             else:
                 give_up = False
-            
+
             # 2nd-kind Chebyshev grid:
             x = chebyshev_points(n)
             # Take every 2nd entry:
@@ -1449,7 +1456,7 @@ class Function:
         if xdata is not None:
             assert ydata is not None, f'xdata is {xdata}, while ydata is {ydata}'
             assert len(xdata) == len(ydata)
-            assert fun is None, f'with xdata and ydata, fun must be None'
+            assert fun is None, 'with xdata and ydata, fun must be None'
 
             # xdata must be sorted for spline construction:
             sorted_idx = np.argsort(xdata)
@@ -1457,7 +1464,9 @@ class Function:
             ydata_sorted = ydata[sorted_idx]
 
             cs = CubicSpline(xdata_sorted, ydata_sorted)
-            fun = lambda x: cs(x)
+
+            def fun(x):
+                return cs(x)
             default_domain = 1.0 * np.array([np.min(xdata), np.max(xdata)])
 
         # Extract the domain from kwargs and remove it
@@ -1478,7 +1487,8 @@ class Function:
         # Piecewise construction using a coefficients array for each piece packed in a list:
         piecewise_coeffs_flag = fun is None and self.npieces > 1 and xdata is None and ydata is None
         # Piecewise construction using a lambda for each piece packed in a list:
-        piecewise_lambda_flag = fun is not None and isinstance(fun, list) and self.npieces > 1 and xdata is None and ydata is None
+        piecewise_lambda_flag = \
+            fun is not None and isinstance(fun, list) and self.npieces > 1 and xdata is None and ydata is None
         if piecewise_coeffs_flag:
             piecewise_coefficients = kwargs.pop('coefficients', None)
 
@@ -1514,9 +1524,9 @@ class Function:
             a, b = self.domain[0], self.domain[-1]
         return (x - a) / (b - a) - (b - x) / (b - a)
 
-    #############################################################
-    ######## section: miscellaenous oeverlaods        ###########
-    #############################################################
+    # #############################################################
+    # ######## section: miscellaenous oeverlaods        ###########
+    # #############################################################
     # def __getattr__(self, item):
     #     return self.function_object.__getattribute__(item)
 
@@ -1540,7 +1550,7 @@ class Function:
         if not isinstance(x, types.LambdaType):
             return self[x]
         else:
-            assert False, f'__call__, not implemented for lambdas yet'
+            assert False, '__call__, not implemented for lambdas yet'
             # When x is a lambda the result is a
             # composition. TODO: this has not been
             # tested, probably need to fix the lambda for
@@ -1552,9 +1562,9 @@ class Function:
         # Evaluate the object at the point(s) x:
         return self.evaluate(x)
 
-    ############################################################
-    ####### section: Boolean Operators for Functions ###########
-    ############################################################
+    # ############################################################
+    # ####### section: Boolean Operators for Functions ###########
+    # ############################################################
     def __eq__(self, other):
         out = False
         if len(self.pieces) == len(other.pieces):
@@ -1598,9 +1608,9 @@ class Function:
         """Test if a Function has any NaN piece"""
         return np.any([f.isnan() for f in self.pieces])
 
-    #############################################################
-    ######## section: Functions that return numbers #############
-    #############################################################
+    # #############################################################
+    # ######## section: Functions that return numbers #############
+    # #############################################################
     def domain_match_array(self, x: np.array):
         out = self.npieces * [np.zeros((0,))]
         for k in range(self.npieces):
@@ -1740,9 +1750,10 @@ class Function:
     def values_to_coefficients(self, *args, **kwargs):
         # TODO: what does it mean for a piece to have values -> coeffs etc?
         return 1.0 * np.array([f.values_to_coefficients(*args, **kwargs) for f in self.pieces])
-    #############################################################
-    ######## section: Functions that return Functions ###########
-    #############################################################
+    # #############################################################
+    # ######## section: Functions that return Functions ###########
+    # #############################################################
+
     @apply_function_to_all_pieces
     def prolong(self, n: int):
         pass
@@ -1802,9 +1813,9 @@ class Function:
             result.pieces[k] = (result.pieces[k]).derivative(order) * scaling_factor
         return result
 
-    #############################################################
-    ######## section: plotting for Function class     ###########
-    #############################################################
+    # #############################################################
+    # ######## section: plotting for Function class     ###########
+    # #############################################################
     def plot(self, *args, **kwargs):
         a, b = self.domain[0], self.domain[-1]
         x = np.linspace(a, b, 2001)
@@ -1820,9 +1831,9 @@ class Function:
     def plot_coefficients(self, *args, **kwargs):
         return [f.plot_coefficients(*args, **kwargs) for f in self.pieces]
 
-    #############################################################
-    ######## section: Overloads that return Functions ###########
-    #############################################################
+    # #############################################################
+    # ######## section: Overloads that return Functions ###########
+    # #############################################################
     def __pos__(self):
         # TODO: to copy or not ot copy here? self.copy()
         return self.copy()
@@ -1871,4 +1882,3 @@ class Function:
         result = self.copy()
         result.pieces = [f * other for f in result.pieces]
         return result
-
