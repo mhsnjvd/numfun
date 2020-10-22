@@ -7,7 +7,7 @@ docformatter:
 	docformatter -r . --in-place --wrap-summaries=120 --wrap-descriptions=120
 
 isort:
-	isort numfun/ tests/ -m 4 -l 120
+	isort -rc numfun/ tests/ -m 4 -l 120
 
 fmt: docformatter isort
 
