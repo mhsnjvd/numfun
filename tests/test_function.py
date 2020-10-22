@@ -1,3 +1,5 @@
+from typing import Callable
+
 import numpy as np
 from scipy import special
 
@@ -8,15 +10,15 @@ def test_construction_discrete_data() -> None:
     """Test Constuction with discrete x and y data"""
     x = np.linspace(0, 10, 101)
     y = np.linspace(0, 10, 101)
-    f = Function(xdata=x, ydata=y)
-    assert np.allclose(f.domain, np.array([0.0, 10.0]), atol=1e-15)
-    assert len(f) == 2
+    func = Function(xdata=x, ydata=y)
+    assert np.allclose(func.domain, np.array([0.0, 10.0]), atol=1e-15)
+    assert len(func) == 2
 
     x = np.random.rand(10)
     y = np.random.rand(10)
-    f = Function(xdata=x, ydata=y)
-    error = f(x) - y
-    assert np.linalg.norm(f(x) - y, np.inf) < 100 * 1.0e-6
+    func = Function(xdata=x, ydata=y)
+    error = func(x) - y
+    assert np.linalg.norm(error, np.inf) < 100 * 1.0e-6
 
 
 def test_construction_fixed_length() -> None:
@@ -26,27 +28,26 @@ def test_construction_fixed_length() -> None:
     def fun(x):
         return x
 
-    f = Function(fun, length=0)
-    assert len(f) == 0
+    func = Function(fun, length=0)
+    assert len(func) == 0
 
-    f = Function(lambda x: x, length=2)
-    assert len(f) == 2
+    func = Function(lambda x: x, length=2)
+    assert len(func) == 2
 
-    f = Function(lambda x: np.abs(x), lengths=[2, 2], domain=[-1, 0, 1])
-    assert len(f.pieces) == 2
-    assert len(f.pieces[0]) == 2
-    assert len(f.pieces[1]) == 2
+    func = Function(lambda x: np.abs(x), lengths=[2, 2], domain=[-1, 0, 1])
+    assert len(func.pieces) == 2
+    assert len(func.pieces[0]) == 2
+    assert len(func.pieces[1]) == 2
 
-    f = Function(fun, length=201)
-    assert len(f) == 201
+    func = Function(fun, length=201)
+    assert len(func) == 201
     xx = np.linspace(-1, 1, 201 + np.random.randint(0, 10))
-    assert np.allclose(f(xx), xx, atol=1e-15)
-    assert np.allclose(f.points, f.values, atol=1e-15)
+    assert np.allclose(func(xx), xx, atol=1e-15)
+    assert np.allclose(func.points, func.values, atol=1e-15)
 
 
 def test_construction_adaptive() -> None:
-    """Test the construction process
-    """
+    """Test the construction process."""
 
     f = Function()
     assert len(f) == 0
@@ -57,11 +58,10 @@ def test_construction_adaptive() -> None:
     tol = 100 * np.spacing(1)
 
     # Test on a scalar-valued function:
-    f = lambda t: np.sin(t)
-    g = Function(f)
-    x = g.points
+    def sin(t): return np.sin(t)
+    g = Function(sin)
     values = g.coefficients_to_values()
-    assert np.linalg.norm(f(x) - values, np.inf) < tol
+    assert np.linalg.norm(sin(g.points) - values, np.inf) < tol
     assert np.abs(g.vscale() - np.sin(1.0)) < tol
     assert g.resolved
 
@@ -73,12 +73,12 @@ def test_construction_adaptive() -> None:
     assert np.all(result.coefficients == np.array([0.0, 1.0]))
 
     xx = np.linspace(-1, 1, 201 + np.random.randint(0, 10))
-    f_true = lambda x: np.exp(-10 * x ** 2)
+    def f_true(x): return np.exp(-10 * x ** 2)
     f = Function(fun=f_true)
     assert np.linalg.norm(f(xx) - f_true(xx), np.inf) < 100 * 1e-16
 
     xx = np.linspace(-1, 1, 201 + np.random.randint(0, 10))
-    g_true = lambda x: np.sin(4 * np.pi * x)
+    def g_true(x): return np.sin(4 * np.pi * x)
     g = Function(g_true)
     assert np.linalg.norm(g(xx) - g_true(xx), np.inf) < 100 * 1e-16
 
@@ -98,49 +98,42 @@ def test_addition() -> None:
 
 
 def test_abs() -> None:
-    x = -1 + 2.0 * np.random.rand(100)
+    x_ = -1 + 2.0 * np.random.rand(100)
     # Test a positive function:
 
-    F = lambda x: np.sin(x) + 2.0
+    def F(x): return np.sin(x) + 2.0  # noqa
     f = Function(lambda x: F(x))
     h = f.abs()
-    assert np.linalg.norm(h(x) - f(x), np.inf) < 10 * np.spacing(1)
+    assert np.linalg.norm(h(x_) - f(x_), np.inf) < 10 * np.spacing(1)
 
     # Test a negative function:
     f2 = Function(lambda x: -F(x))
     h = f2.abs()
-    assert np.linalg.norm(h(x) + f2(x), np.inf) < 10 * np.spacing(1)
+    assert np.linalg.norm(h(x_) + f2(x_), np.inf) < 10 * np.spacing(1)
 
     # Test a complex-valued function:
-    F = lambda x: np.exp(1.0j * np.pi * x)
+    def F(x_): return np.exp(1.0j * np.pi * x_)  # noqa
     f = Function(lambda x: F(x))
     h = f.abs()
-    assert np.linalg.norm(h(x) - 1.0, np.inf) < 1e2 * np.spacing(1)
+    assert np.linalg.norm(h(x_) - 1.0, np.inf) < 1e2 * np.spacing(1)
+
+
+def check_add_function_to_function(f: Function, f_op: Callable, g: Callable, g_op: Callable, x: np.ndarray) -> bool:
+    """Test the addition of two function f and g, specified by f_op and g_op"""
+    h1 = f + g
+    h2 = g + f
+    result_1 = (h1 == h2)
+    def h_exact(xx): return f_op(xx) + g_op(xx)
+    tol = 1e4 * h1.vscale() * np.spacing(1)
+    result_2 = (np.linalg.norm(h1(x) - h_exact(x), np.inf) <= tol)
+
+    return result_1 and result_2
 
 
 def test_add() -> None:
-    def test_add_function_to_function(f, f_op, g, g_op, x):
-        """Test the addition of two function f and g, specified by f_op and g_op
-
-        :param f:
-        :param f_op:
-        :param g:
-        :param g_op:
-        :param x:
-        :return:
-        """
-        h1 = f + g
-        h2 = g + f
-        result_1 = (h1 == h2)
-        h_exact = lambda x: f_op(x) + g_op(x)
-        tol = 1e4 * h1.vscale() * np.spacing(1)
-        result_2 = (np.linalg.norm(h1(x) - h_exact(x), np.inf) <= tol)
-
-        return result_1 and result_2
-
     # Generate a few random points to use as test values.
     np.random.seed(6178)
-    x = -1 + 2.0 * np.random.rand(100)
+    x_ = -1 + 2.0 * np.random.rand(100)
 
     # A random number to use as an arbitrary additive constant.
     alpha = -0.194751428283640 + 0.079814485412665j
@@ -155,24 +148,24 @@ def test_add() -> None:
 
     # Check addition of two function objects.
 
-    f_op = lambda x: np.zeros(len(x))
+    def f_op(x): return np.zeros(len(x))
     f = Function(f_op)
-    assert test_add_function_to_function(f, f_op, f, f_op, x)
+    assert check_add_function_to_function(f, f_op, f, f_op, x_)
 
-    f_op = lambda x: np.exp(x) - 1.0
+    def f_op(x): return np.exp(x) - 1.0
     f = Function(f_op)
 
-    g_op = lambda x: 1.0 / (1.0 + x ** 2)
+    def g_op(x): return 1.0 / (1.0 + x ** 2)
     g = Function(g_op)
-    assert test_add_function_to_function(f, f_op, g, g_op, x)
+    assert check_add_function_to_function(f, f_op, g, g_op, x_)
 
-    g_op = lambda x: np.cos(1e4 * x)
+    def g_op(x): return np.cos(1e4 * x)
     g = Function(g_op)
-    assert test_add_function_to_function(f, f_op, g, g_op, x)
+    assert check_add_function_to_function(f, f_op, g, g_op, x_)
 
-    g_op = lambda t: np.sinh(t * np.exp(2.0 * np.pi * 1.0j / 6.0))
+    def g_op(t): return np.sinh(t * np.exp(2.0 * np.pi * 1.0j / 6.0))
     g = Function(g_op)
-    assert test_add_function_to_function(f, f_op, g, g_op, x)
+    assert check_add_function_to_function(f, f_op, g, g_op, x_)
 
     # Check that direct construction and PLUS give comparable results.
     tol = 10 * np.spacing(1)
@@ -198,14 +191,14 @@ def test_add() -> None:
 def test_radd() -> None:
     # Generate a few random points to use as test values.
     np.random.seed(6178)
-    x = -1 + 2.0 * np.random.rand(100)
+    x_ = -1 + 2.0 * np.random.rand(100)
 
     # A random number to use as an arbitrary additive constant.
     alpha = -0.184752428910640 + 0.079812805462665j
 
     # Check addition with scalars.
 
-    f_op = lambda x: np.sin(x)
+    def f_op(x): return np.sin(x)
     f = Function(f_op)
 
     # Test the addition of f, specified by f_op, to a scalar using
@@ -213,54 +206,49 @@ def test_radd() -> None:
     g1 = f + alpha
     g2 = alpha + f
     assert g1 == g2
-    g_exact = lambda x: f_op(x) + alpha
+    def g_exact(x): return f_op(x) + alpha
     tol = 10 * g1.vscale() * np.spacing(1)
-    assert np.linalg.norm(g1(x) - g_exact(x), np.inf) <= tol
+    assert np.linalg.norm(g1(x_) - g_exact(x_), np.inf) <= tol
 
 
 def test_rsub() -> None:
     # Generate a few random points to use as test values.
-    x = -1.0 + 2.0 * np.random.rand(100)
+    x_ = -1.0 + 2.0 * np.random.rand(100)
 
     # A random number to use as an arbitrary additive constant.
     alpha = np.random.randn() + 1.0j * np.random.randn()
 
-    f_op = lambda x: np.sin(x)
+    def f_op(x): return np.sin(x)
     f = Function(f_op)
 
     # Test the subtraction of f, to and from a scalar using a grid of points
     g1 = f - alpha
     g2 = alpha - f
     assert g1 == g2
-    g_exact = lambda x: f_op(x) - alpha
+    def g_exact(x): return f_op(x) - alpha
 
     # [TODO] can we bring this tolerance down?
     tol = 1.0e2 * g1.vscale() * np.spacing(1)
-    assert np.linalg.norm(g1(x) - g_exact(x), np.inf) <= tol
+    assert np.linalg.norm(g1(x_) - g_exact(x_), np.inf) <= tol
+
+
+def check_sub_function_and_function(f: Function, f_op: Callable, g: Callable, g_op: Callable, x: np.ndarray) -> bool:
+    """Test the subtraction of two objects f and g, specified by f_op and g_op, using a grid of points x in [-1  1]
+    for testing samples.
+    """
+    h1 = f - g
+    h2 = g - f
+    result_1 = (h1 == (-1.0 * h2))
+    def h_exact(xx): return f_op(xx) - g_op(xx)
+    tol = 1e4 * h1.vscale() * np.spacing(1)
+    result_2 = (np.linalg.norm(h1(x) - h_exact(x), np.inf) <= tol)
+    return result_1 and result_2
 
 
 def test_sub() -> None:
-    def test_sub_function_and_function(f, f_op, g, g_op, x):
-        """Test the subtraction of two objects f and g, specified by f_op and
-        g_op, using a grid of points x in [-1  1] for testing samples.
-
-        :param f:
-        :param f_op:
-        :param g:
-        :param g_op:
-        :param x:
-        :return:
-        """
-        h1 = f - g
-        h2 = g - f
-        result_1 = (h1 == (-1.0 * h2))
-        h_exact = lambda x: f_op(x) - g_op(x)
-        tol = 1e4 * h1.vscale() * np.spacing(1)
-        result_2 = (np.linalg.norm(h1(x) - h_exact(x), np.inf) <= tol)
-        return result_1 and result_2
 
     # Generate a few random points to use as test values.
-    x = -1.0 + 2.0 * np.random.rand(100)
+    x_ = -1.0 + 2.0 * np.random.rand(100)
 
     # A random number to use as an arbitrary additive constant.
     alpha = np.random.randn() + 1.0j * np.random.randn()
@@ -275,24 +263,24 @@ def test_sub() -> None:
 
     # Check subtraction of two function objects.
 
-    f_op = lambda x: np.zeros(len(x))
+    def f_op(x): return np.zeros(len(x))
     f = Function(f_op)
-    assert test_sub_function_and_function(f, f_op, f, f_op, x)
+    assert check_sub_function_and_function(f, f_op, f, f_op, x_)
 
-    f_op = lambda x: np.exp(x) - 1
+    def f_op(x): return np.exp(x) - 1
     f = Function(f_op)
 
-    g_op = lambda x: 1.0 / (1 + x ** 2)
-    g =Function(g_op)
-    assert test_sub_function_and_function(f, f_op, g, g_op, x)
-
-    g_op = lambda x: np.cos(1e4 * x)
+    def g_op(x): return 1.0 / (1 + x ** 2)
     g = Function(g_op)
-    assert test_sub_function_and_function(f, f_op, g, g_op, x)
+    assert check_sub_function_and_function(f, f_op, g, g_op, x_)
 
-    g_op = lambda t: np.sinh(t * np.exp(2.0 * np.pi * 1.0j / 6.0))
+    def g_op(x): return np.cos(1e4 * x)
     g = Function(g_op)
-    assert test_sub_function_and_function(f, f_op, g, g_op, x)
+    assert check_sub_function_and_function(f, f_op, g, g_op, x_)
+
+    def g_op(t): return np.sinh(t * np.exp(2.0 * np.pi * 1.0j / 6.0))
+    g = Function(g_op)
+    assert check_sub_function_and_function(f, f_op, g, g_op, x_)
 
     # Check that direct construction and the binary minus op give comparable results.
 
@@ -321,49 +309,44 @@ def test_rmul() -> None:
     Generate a few random points to use as test values.
     :return:
     """
-    x = -1 + 2.0 * np.random.rand(100)
+    x_ = -1 + 2.0 * np.random.rand(100)
 
     # Random numbers to use as arbitrary multiplicative constants.
     alpha = -0.213251928283644 + 0.053493485412265j
 
     # Check multiplication by scalars.
-    f_op = lambda x: np.sin(x)
+    def f_op(x): return np.sin(x)
     f = Function(f_op)
     g1 = f * alpha
     g2 = alpha * f
     assert g1 == g2
-    g_exact = lambda x: f_op(x) * alpha
-    assert np.linalg.norm(g1(x) - g_exact(x), np.inf) < 10 * np.max(g1.vscale() * np.spacing(1))
+    def g_exact(x): return f_op(x) * alpha
+    assert np.linalg.norm(g1(x_) - g_exact(x_), np.inf) < 10 * np.max(g1.vscale() * np.spacing(1))
+
+
+def check_mul_function_by_function(
+        f: Function, f_op: Callable, g: Callable, g_op: Callable, x: np.ndarray, check_positive: bool
+) -> bool:
+    """ Test the multiplication of two function f and g, specified by f_op and
+     g_op, using a grid of points x in [-1  1] for testing samples.  If check_positive is
+     True, an additional check is performed to ensure that the values of the result
+     are all non-negative otherwise, this check is skipped.
+    """
+    h = f * g
+    def h_exact(xx): return f_op(xx) * g_op(xx)
+    tol = 1e4 * np.max(h.vscale() * np.spacing(1))
+    result_1 = np.linalg.norm(h(x) - h_exact(x), np.inf) < tol
+    result_2 = True
+    if check_positive:
+        values = h.coefficients_to_values(h.coefficients)
+        result_2 = np.all(values >= -tol)
+    return result_1 and result_2
 
 
 def test_mul() -> None:
-    def test_mul_function_by_function(f, f_op, g, g_op, x, check_positive):
-        """ Test the multiplication of two function f and g, specified by f_op and
-         g_op, using a grid of points x in [-1  1] for testing samples.  If check_positive is
-         True, an additional check is performed to ensure that the values of the result
-         are all non-negative otherwise, this check is skipped.
-
-        :param f:
-        :param f_op:
-        :param g:
-        :param g_op:
-        :param x:
-        :param check_positive:
-        :return:
-        """
-        h = f * g
-        h_exact = lambda x: f_op(x) * g_op(x)
-        tol = 1e4 * np.max(h.vscale() * np.spacing(1))
-        result_1 = np.linalg.norm(h(x) - h_exact(x), np.inf) < tol
-        result_2 = True
-        if check_positive:
-            values = h.coefficients_to_values(h.coefficients)
-            result_2 = np.all(values >= -tol)
-        return result_1 and result_2
-
     # Generate a few random points to use as test values.
     np.random.seed(6178)
-    x = -1 + 2.0 * np.random.rand(100)
+    x_ = -1 + 2.0 * np.random.rand(100)
 
     # Random numbers to use as arbitrary multiplicative constants.
     alpha = -0.194758928283640 + 0.075474485412665j
@@ -378,57 +361,57 @@ def test_mul() -> None:
 
     # Check multiplication by constant functions.
 
-    f_op = lambda x: np.sin(x)
+    def f_op(x): return np.sin(x)
     f = Function(f_op)
-    g_op = lambda x: np.zeros(len(x)) + alpha
+    def g_op(x): return np.zeros(len(x)) + alpha
     g = Function(g_op)
-    assert test_mul_function_by_function(f, f_op, g, g_op, x, False)
+    assert check_mul_function_by_function(f, f_op, g, g_op, x_, False)
 
     # Spot-check multiplication of two function objects for a few test
     # functions.
 
-    f_op = lambda x: np.ones(len(x))
+    def f_op(x): return np.ones(len(x))
     f = Function(f_op)
-    assert test_mul_function_by_function(f, f_op, f, f_op, x, False)
+    assert check_mul_function_by_function(f, f_op, f, f_op, x_, False)
 
-    f_op = lambda x: np.exp(x) - 1.0
+    def f_op(x): return np.exp(x) - 1.0
     f = Function(f_op)
 
-    g_op = lambda x: 1.0 / (1.0 + x ** 2)
+    def g_op(x): return 1.0 / (1.0 + x ** 2)
     g = Function(g_op)
-    assert test_mul_function_by_function(f, f_op, g, g_op, x, False)
+    assert check_mul_function_by_function(f, f_op, g, g_op, x_, False)
 
     # If f and g are real then so must be f * g
     h = f * g
     assert h.isreal()
 
-    g_op = lambda x: np.cos(1.0e4 * x)
+    def g_op(x): return np.cos(1.0e4 * x)
     g = Function(g_op)
-    assert test_mul_function_by_function(f, f_op, g, g_op, x, False)
+    assert check_mul_function_by_function(f, f_op, g, g_op, x_, False)
 
-    g_op = lambda t: np.sinh(t * np.exp(2.0 * np.pi * 1.0j / 6.0))
+    def g_op(t): return np.sinh(t * np.exp(2.0 * np.pi * 1.0j / 6.0))
     g = Function(g_op)
-    assert test_mul_function_by_function(f, f_op, g, g_op, x, False)
+    assert check_mul_function_by_function(f, f_op, g, g_op, x_, False)
 
     # Check specially handled cases, including some in which an adjustment for
     # positivity is performed.
 
-    f_op = lambda t: np.sinh(t * np.exp(2.0 * np.pi * 1.0j / 6.0))
+    def f_op(t): return np.sinh(t * np.exp(2.0 * np.pi * 1.0j / 6.0))
     f = Function(f_op)
-    assert test_mul_function_by_function(f, f_op, f, f_op, x, False)
+    assert check_mul_function_by_function(f, f_op, f, f_op, x_, False)
 
-    g_op = lambda t: np.conjugate(np.sinh(t * np.exp(2.0 * np.pi * 1.0j / 6.0)))
+    def g_op(t): return np.conjugate(np.sinh(t * np.exp(2.0 * np.pi * 1.0j / 6.0)))
     g = f.conj()
-    assert test_mul_function_by_function(f, f_op, g, g_op, x, True)
+    assert check_mul_function_by_function(f, f_op, g, g_op, x_, True)
 
-    f_op = lambda x: np.exp(x) - 1.0
+    def f_op(x): return np.exp(x) - 1.0
     f = Function(f_op)
-    assert test_mul_function_by_function(f, f_op, f, f_op, x, True)
+    assert check_mul_function_by_function(f, f_op, f, f_op, x_, True)
 
     # Check that multiplication and direct construction give similar results.
 
     tol = 50 * np.spacing(1)
-    g_op = lambda x: 1.0 / (1.0 + x ** 2)
+    def g_op(x): return 1.0 / (1.0 + x ** 2)
     g = Function(g_op)
     h1 = f * g
     h2 = Function(lambda x: f_op(x) * g_op(x))
@@ -446,8 +429,9 @@ def test_mul() -> None:
     # h = g.*f  # Multiply unresolved by resolved.
     # assert here -> = (not g.resolved) and (not h.resolved)
 
+
 def test_roots() -> None:
-    func = lambda x: (x + 1) * 50
+    def func(x): return (x + 1) * 50
     f = Function(lambda x: special.j0(func(x)))
     r = func(f.roots())
     exact = np.array([
@@ -572,8 +556,7 @@ def test_sum() -> None:
 
 def test_cumsum() -> None:
     # Generate a few random points to use as test values.
-
-    x = 2 * np.random.rand(100) - 1
+    x_ = 2 * np.random.rand(100) - 1
 
     # Spot-check antiderivatives for a couple of functions.  We verify that the
     # function antiderivatives match the true ones up to a constant by checking
@@ -582,42 +565,41 @@ def test_cumsum() -> None:
     # time.
 
     f = Function(lambda x: np.exp(x) - 1.0)
-    F = f.cumsum()
-    F_ex = lambda x: np.exp(x) - x
-    err = np.std(F[x] - F_ex(x))
+    F = f.cumsum()  # noqa
+    F_ex = lambda x: np.exp(x) - x  # noqa
+    err = np.std(F[x_] - F_ex(x_))
     tol = 20 * F.vscale() * np.spacing(1)
     assert err < tol
     assert np.abs(F[-1]) < tol
 
     f = Function(lambda x: 1.0 / (1.0 + x ** 2))
-    F = f.cumsum()
-    F_ex = lambda x: np.arctan(x)
-    err = np.std(F[x] - F_ex(x))
+    F = f.cumsum()  # noqa
+    F_ex = lambda x: np.arctan(x)  # noqa
+    err = np.std(F[x_] - F_ex(x_))
     tol = 10 * F.vscale() * np.spacing(1)
     assert err < tol
     assert np.abs(F[-1]) < tol
 
     f = Function(lambda x: np.cos(1.0e4 * x))
-    F = f.cumsum()
-    F_ex = lambda x: np.sin(1.0e4 * x) / 1.0e4
-    err = F[x] - F_ex(x)
+    F = f.cumsum()  # noqa
+    F_ex = lambda x: np.sin(1.0e4 * x) / 1.0e4  # noqa
+    err = F[x_] - F_ex(x_)
     tol = 10.0e4 * F.vscale() * np.spacing(1)
     assert (np.std(err) < tol) and (np.abs(F[-1]) < tol)
 
     z = np.exp(2 * np.pi * 1.0j / 6)
     f = Function(lambda t: np.sinh(t * z))
-    F = f.cumsum()
-    F_ex = lambda t: np.cosh(t * z) / z
-    err = F[x] - F_ex(x)
+    F = f.cumsum()  # noqa
+    F_ex = lambda t: np.cosh(t * z) / z  # noqa
+    err = F[x_] - F_ex(x_)
     tol = 10 * F.vscale() * np.spacing(1)
     assert (np.std(err) < tol) and (np.abs(F[-1]) < tol)
 
     # Check that applying cumsum() and direct construction of the antiderivative
     # give the same results (up to a constant).
-
     f = Function(lambda x: np.sin(4.0 * x) ** 2)
-    F = Function(lambda x: 0.5 * x - 0.0625 * np.sin(8 * x))
-    G = f.cumsum()
+    F = Function(lambda x: 0.5 * x - 0.0625 * np.sin(8 * x))  # noqa
+    G = f.cumsum()  # noqa
     err = G - F
     tol = 10 * G.vscale() * np.spacing(1)
     values = err.coefficients_to_values(err.coefficients)
@@ -627,37 +609,34 @@ def test_cumsum() -> None:
     # constant.
 
     f = Function(lambda x: x * (x - 1.0) * np.sin(x) + 1.0)
-    integral_f = lambda x: (-x ** 2 + x + 2) * np.cos(x) + x + (2 * x - 1) * np.sin(x)
-    F = lambda x: integral_f(x) - integral_f(-1)
+    def integral_f(x): return (-x ** 2 + x + 2) * np.cos(x) + x + (2 * x - 1) * np.sin(x)
+    # F = lambda x: integral_f(x) - integral_f(-1)
     g = f.cumsum().diff()
-    err = f(x) - g(x)
+    err = f(x_) - g(x_)
     tol = 10 * g.vscale() * np.spacing(1)
     assert np.linalg.norm(err, np.inf) < 100 * tol
 
     h = f.diff().cumsum()
-    err = f(x) - h(x)
+    err = f(x_) - h(x_)
     tol = 10 * h.vscale() * np.spacing(1)
     assert (np.std(err) < tol) and (np.abs(h[-1]) < tol)
 
 
+def spotcheck_max(fun_op: Callable, exact_max: complex) -> float:
+    """Spot-check the results for a given function."""
+    f = Function(fun_op)
+    y = f.max()
+    x = f.argmax()
+    fx = fun_op(x)
+
+    # [TODO]: Try to get this tolerance down:
+    result = (np.all(np.abs(y - exact_max) < 1.0e2 * f.vscale() * np.spacing(1))) and (
+        np.all(np.abs(fx - exact_max) < 1.0e2 * f.vscale() * np.spacing(1)))
+
+    return result
+
+
 def test_max() -> None:
-    def spotcheck_max(fun_op, exact_max):
-        """Spot-check the results for a given function.
-        :param fun_op:
-        :param exact_max:
-        :return:
-        """
-        f = Function(fun_op)
-        y = f.max()
-        x = f.argmax()
-        fx = fun_op(x)
-
-        # [TODO]: Try to get this tolerance down:
-        result = (np.all(np.abs(y - exact_max) < 1.0e2 * f.vscale() * np.spacing(1))) and (
-            np.all(np.abs(fx - exact_max) < 1.0e2 * f.vscale() * np.spacing(1)))
-
-        return result
-
     # Spot-check the extrema for a few functions.
     assert spotcheck_max(lambda x: ((x - 0.2) ** 3 - (x - 0.2) + 1) * 1.0 / np.cos(x - 0.2), 1.884217141925336)
     assert spotcheck_max(lambda x: np.sin(10 * x), 1.0)
@@ -667,21 +646,22 @@ def test_max() -> None:
 
     # Test for complex-valued function objects.
     assert spotcheck_max(lambda x: (x - 0.2) * (np.exp(1.0j * (x - 0.2)) + 1.0j * np.sin(x - 0.2)),
-                                  -0.434829305372008 + 2.236893806321343j)
+                         -0.434829305372008 + 2.236893806321343j)
+
+
+def spotcheck_min(fun_op: Callable, exact_min: complex) -> float:
+    # Spot-check the results for a given function.
+    f = Function(fun_op)
+    y = f.min()
+    x = f.argmin()
+    fx = fun_op(x)
+    result = ((np.abs(y - exact_min) < 1.0e2 * f.vscale() * np.spacing(1)) and (
+            np.abs(fx - exact_min) < 1.0e2 * f.vscale() * np.spacing(1)))
+
+    return result
 
 
 def test_min() -> None:
-    def spotcheck_min(fun_op, exact_min):
-        # Spot-check the results for a given function.
-        f = Function(fun_op)
-        y = f.min()
-        x = f.argmin()
-        fx = fun_op(x)
-        result = ((np.abs(y - exact_min) < 1.0e2 * f.vscale() * np.spacing(1)) and (
-                np.abs(fx - exact_min) < 1.0e2 * f.vscale() * np.spacing(1)))
-
-        return result
-
     # Spot-check the extrema for a few functions.
 
     assert spotcheck_min(lambda x: -((x - 0.2) ** 3 - (x - 0.2) + 1) * 1.0 / np.cos(x - 0.2), -1.884217141925336)
