@@ -1,31 +1,34 @@
 from functools import wraps
+from typing import Callable, TypeVar, cast
 
 import numpy as np
 from numba import njit
 
 from numfun.barycentric import barycentric_interpolation
 
+F = TypeVar('F', bound=Callable)
 
-def complexify(func):
+
+def complexify(func: F) -> F:
     """Decorator to apply f on real and imaginary parts and the return the sum.
 
     :param func: A linear operator such that f(a+ib) = f(a) + i f(b)
     :return: a function which adds f(real(input)) + 1j * f(imag(input))
     """
     @wraps(func)
-    def wrapper(c):
+    def wrapper(coefficients: np.ndarray) -> np.ndarray:
         """c is a complex input array."""
         # Make sure c is a numpy array
-        c = 1.0 * np.array(c)
-        if np.all(np.isreal(c)):
-            return func(c.real)
-        if np.all(np.isreal(1j * c)):
-            return 1j * func(c.imag)
-        u = func(c.real)
-        v = func(c.imag)
+        coefficients = 1.0 * np.array(coefficients)
+        if np.all(np.isreal(coefficients)):
+            return func(coefficients.real)
+        if np.all(np.isreal(1j * coefficients)):
+            return 1j * func(coefficients.imag)
+        u = func(coefficients.real)
+        v = func(coefficients.imag)
         return u + 1j * v
 
-    return wrapper
+    return cast(F, wrapper)
 
 
 @complexify
