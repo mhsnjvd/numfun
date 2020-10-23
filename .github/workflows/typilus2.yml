@@ -1,7 +1,0 @@
-- name: Typilus: Suggest Python Type Annotations
-  # You may pin to the exact commit or the version.
-  # uses: typilus/typilus-action@00a57f1b62f8811a751ad854f0e44d45ea159376
-  uses: typilus/typilus-action@v0.9
-  with:
-    # File or directory to run Typilus on.
-    path: # optional, default is .
