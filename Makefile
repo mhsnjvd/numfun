@@ -13,12 +13,12 @@ fmt: docformatter isort
 
 # LINT -----------------------------------------------------------------------------------------------------------------
 docformatter-check:
-	docformatter -r . --check --wrap-summaries=120 --wrap-descriptions=120 || \
-	docformatter -r . --wrap-summaries=120 --wrap-descriptions=120 && exit 1  # Show diff if check failed
+	docformatter -r . --wrap-summaries=120 --wrap-descriptions=120 && \
+	docformatter -r . --check --wrap-summaries=120 --wrap-descriptions=120
 
 isort-check:
-	isort --check-only numfun/ tests/ -m 4 -l 120 || \
-	isort --diff --color numfun/ tests/ -m 4 -l 120 && exit 1  # Show diff if check failed
+	isort --diff --color numfun/ tests/ -m 4 -l 120 && \
+	isort --check-only numfun/ tests/ -m 4 -l 120
 
 flake8:
 	flake8 . --config=build-support/.flake8
