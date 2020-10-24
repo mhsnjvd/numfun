@@ -1,9 +1,8 @@
 import matplotlib.pylab as plt
 import numpy as np
-from scipy.interpolate import CubicSpline
-
 from barycentric import barycentric_interpolation
 from function import Function
+from scipy.interpolate import CubicSpline
 
 x = np.linspace(0, 5, 21)
 a = 1.0

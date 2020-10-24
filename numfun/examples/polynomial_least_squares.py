@@ -1,7 +1,6 @@
 import matplotlib.pyplot as plt
 import numpy as np
-
-from polyfit import polyfit
+from numfun.polyfit import polyfit
 
 n_pts = 101
 x = np.linspace(-1, 1, n_pts)
