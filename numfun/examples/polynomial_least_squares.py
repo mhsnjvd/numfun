@@ -1,5 +1,6 @@
 import matplotlib.pyplot as plt
 import numpy as np
+
 from numfun.polyfit import polyfit
 
 n_pts = 101
