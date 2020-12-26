@@ -1,25 +1,32 @@
 import matplotlib.pylab as plt
 import numpy as np
 from barycentric import barycentric_interpolation
-from function import Function
 from scipy.interpolate import CubicSpline
+
+from numfun.function import Function
 
 x = np.linspace(0, 5, 21)
 a = 1.0
 b = 4
 c = 1
 w = np.random.randn(len(x))
-y_true = lambda x: a + b * x + c * x**2
-y_noisy = lambda x: y_true(x) + w
+
+
+def y_true(xx):
+    return a + b * xx + c * xx ** 2
+
+
+def y_noisy(xx):
+    return y_true(xx) + w
+
+
 y = y_noisy(x)
 
 
 # % interpolation in equidistant points doesn't really
 # work:
-def f(xx):
-    return barycentric_interpolation(xx, y, x)
 
-g = Function(f, length=len(y), domain=[0, 5])
+g = Function(lambda xx: barycentric_interpolation(xx, y, x), length=len(y), domain=[0, 5])
 g.plot()
 plt.plot(x, y, 'g.', x, y - w, 'k--', x, g(x), 'r.')
 plt.grid(True)

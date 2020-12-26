@@ -9,23 +9,23 @@ from numfun.barycentric import barycentric_interpolation
 F = TypeVar('F', bound=Callable)
 
 
-def complexify(func: F) -> F:
-    """Decorator to apply f on real and imaginary parts and the return the sum.
+def complexify(g: F) -> F:
+    """Decorator to apply g on real and imaginary parts and the return the sum.
 
-    :param func: A linear operator such that f(a+ib) = f(a) + i f(b)
-    :return: a function which adds f(real(input)) + 1j * f(imag(input))
+    :param g: A linear operator such that g(a+ib) = g(a) + i g(b)
+    :return: a function which adds g(real(input)) + 1j * g(imag(input))
     """
-    @wraps(func)
+    @wraps(g)
     def wrapper(coefficients: np.ndarray) -> np.ndarray:
-        """c is a complex input array."""
+        """coefficients is a complex input array."""
         # Make sure c is a numpy array
         coefficients = 1.0 * np.array(coefficients)
         if np.all(np.isreal(coefficients)):
-            return func(coefficients.real)
+            return g(coefficients.real)
         if np.all(np.isreal(1j * coefficients)):
-            return 1j * func(coefficients.imag)
-        u = func(coefficients.real)
-        v = func(coefficients.imag)
+            return 1j * g(coefficients.imag)
+        u = g(coefficients.real)
+        v = g(coefficients.imag)
         return u + 1j * v
 
     return cast(F, wrapper)

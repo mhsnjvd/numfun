@@ -1,4 +1,4 @@
-from typing import List, cast
+from typing import List, Union
 
 import numpy as np
 from numba import njit
@@ -60,7 +60,7 @@ def inf_norm_of_derivatives(f, domain=np.array([-1.0, 1.0]), order=4, grid_size=
     return max_der, na, nb
 
 
-def detect_edge(f, domain=np.array([-1.0, 1.0]), v_scale=1.0, h_scale=2.0) -> float:
+def detect_edge(f, domain=np.array([-1.0, 1.0]), v_scale=1.0, h_scale=2.0) -> Union[float, np.ndarray]:
 
     # By default, there is no edge
     # edge = np.nan
@@ -90,7 +90,7 @@ def detect_edge(f, domain=np.array([-1.0, 1.0]), v_scale=1.0, h_scale=2.0) -> fl
 
         if len(nz) == 0:
             # Derivatives are not growing;
-            return cast(float, np.zeros((0,)))
+            return np.zeros((0,))
         else:
             order = nz[0] + 1
 
@@ -101,7 +101,7 @@ def detect_edge(f, domain=np.array([-1.0, 1.0]), v_scale=1.0, h_scale=2.0) -> fl
         ends = np.array([new_a[order-1], new_b[order-1]])
 
     edge = np.mean(ends)
-    return cast(float, edge)
+    return edge
 
 
 def find_discontinuity(f, domain=np.array([-1.0, 1.0]), v_scale: float = 1.0, h_scale: float = 2.0):

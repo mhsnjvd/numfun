@@ -1,4 +1,4 @@
-from collections.abc import Iterable
+from typing import Sequence, Union
 
 import numpy as np
 from numba import njit
@@ -6,6 +6,7 @@ from numba import njit
 from numfun.function import Function
 
 
+# noinspection PyPep8Naming
 @njit
 def polyfit_jit(x: np.array, y: np.array, n: int, a: float, b: float) -> tuple:
     """Jitted version of polyfit, see polyfit for details.
@@ -18,12 +19,12 @@ def polyfit_jit(x: np.array, y: np.array, n: int, a: float, b: float) -> tuple:
     :return: the output of np.linalg.lstsq()
     """
     m = len(x)
-    tx = np.zeros((m, n + 1))
-    tx[:, 0] = np.ones(m)
+    Tx = np.zeros((m, n + 1))
+    Tx[:, 0] = np.ones(m)
     x_map = 2.0 * (x - a) / (b - a) - 1.0
-    tx[:, 1] = x_map
+    Tx[:, 1] = x_map
     for k in range(1, n):
-        tx[:, k + 1] = 2.0 * x_map * tx[:, k] - tx[:, k-1]
+        Tx[:, k + 1] = 2.0 * x_map * Tx[:, k] - Tx[:, k-1]
 
     # TODO: this is not compiling :(
     # Initialize variables for jit:
@@ -32,12 +33,17 @@ def polyfit_jit(x: np.array, y: np.array, n: int, a: float, b: float) -> tuple:
     rank = int(0)  # noqa
     singular_values = np.zeros((n+1,))  # noqa
 
-    c, residuals, rank, singular_values = np.linalg.lstsq(tx, y, rcond=None)
+    c, residuals, rank, singular_values = np.linalg.lstsq(Tx, y, rcond=None)
 
     return c, residuals, rank, singular_values
 
 
-def polyfit(x, y, degree=1, domain=None):
+def polyfit(
+        x: np.ndarray,
+        y: np.ndarray,
+        degree: Union[int, Sequence[int]] = 1,
+        domain: Union[None, np.ndarray, Sequence[float]] = None
+) -> Function:
     """Least squares polynomial fitting to discrete data with piecewise domain splitting handled.
 
     :param x:
@@ -48,17 +54,17 @@ def polyfit(x, y, degree=1, domain=None):
     """
 
     if domain is None or len(domain) == 2:
+        assert isinstance(degree, int)
         return polyfit_global(x, y, degree, domain)
-    elif len(domain) > 2:
+    if len(domain) > 2:
         n_pieces = len(domain) - 1
-        if isinstance(degree, Iterable):
-            # A list of degrees is passed
+        if isinstance(degree, Sequence):  # A list of degrees is passed
             assert n_pieces == len(degree), 'must specify degree for each domain'
-        else:
-            # the degree passed is just an integer
-            degree = n_pieces * [int(degree)]
+            degrees = degree
+        else:  # The degree passed is just an integer
+            degrees = n_pieces * [int(degree)]
     else:
-        assert False, f'domain = {domain}, domain must be for the form [a, b]'
+        raise AssertionError(f'domain = {domain}, domain must be for the form [a, b]')
 
     all_coefficients = n_pieces * [None]
     for j in range(n_pieces):
@@ -68,18 +74,23 @@ def polyfit(x, y, degree=1, domain=None):
             c = np.array([])
         else:
             xj, yj = x[idx], y[idx]
-            f = polyfit_global(xj, yj, degree=degree[j], domain=[a, b])
+            f = polyfit_global(xj, yj, degree=degrees[j], domain=[a, b])
             c = f.coefficients[0].copy()
         all_coefficients[j] = c
 
     return Function(coefficients=all_coefficients, domain=domain)
 
 
-def polyfit_global(x, y, degree=1, domain=None):
+def polyfit_global(
+        x: np.ndarray,
+        y: np.ndarray,
+        degree: int = 1,
+        domain: Union[None, Sequence[float], np.ndarray] = None
+) -> Function:
     """Degree n least squares polynomial approximation of data y taken on points x in a domain.
 
-    :param xdata: x-values, np array
-    :param ydata: y-values, i.e., data values, np array
+    :param x: x-values, np array
+    :param y: y-values, i.e., data values, np array
     :param degree: degree of approximation, an integer
     :param domain: domain of approximation
     :return:
@@ -111,11 +122,10 @@ def polyfit_global(x, y, degree=1, domain=None):
     c, residuals, rank, singular_values = np.linalg.lstsq(Tx, y, rcond=None)
 
     # Make a function:
-    f = Function(coefficients=c, domain=domain)
-    return f
+    return Function(coefficients=c, domain=domain)
 
 
-def main():
+def main() -> None:
     import matplotlib.pyplot as plt
     x = np.linspace(0, 10, 11)
     y = x ** 2

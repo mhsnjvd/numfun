@@ -7,7 +7,7 @@ docformatter:
 	docformatter -r . --in-place --wrap-summaries=120 --wrap-descriptions=120
 
 isort:
-	isort numfun/ tests/ -m 4 -l 120
+	isort numfun/ tests/ -m 2 -l 120
 
 fmt: docformatter isort
 
@@ -17,8 +17,8 @@ docformatter-check:
 	docformatter -r . --check --wrap-summaries=120 --wrap-descriptions=120
 
 isort-check:
-	isort --diff --color numfun/ tests/ -m 4 -l 120 && \
-	isort --check-only numfun/ tests/ -m 4 -l 120
+	isort --diff --color numfun/ tests/ -m 2 -l 120 && \
+	isort --check-only numfun/ tests/ -m 2 -l 120
 
 flake8:
 	flake8 . --config=build-support/.flake8

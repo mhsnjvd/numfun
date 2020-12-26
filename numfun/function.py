@@ -8,10 +8,10 @@ import numpy as np
 from scipy.interpolate import CubicSpline
 from scipy.linalg import eig
 
-from numfun.chebyshev import (
-    chebyshev_barycentric_interpolation, chebyshev_clenshaw_evaluation, chebyshev_coefficients_of_derivative,
-    chebyshev_coefficients_of_integral, chebyshev_coefficients_to_values, chebyshev_definite_integral, chebyshev_points,
-    chebyshev_to_monomial_coefficients, chebyshev_values_to_coefficients)
+from numfun.chebyshev import chebyshev_barycentric_interpolation, chebyshev_clenshaw_evaluation, \
+    chebyshev_coefficients_of_derivative, chebyshev_coefficients_of_integral, chebyshev_coefficients_to_values, \
+    chebyshev_definite_integral, chebyshev_points, chebyshev_to_monomial_coefficients, \
+    chebyshev_values_to_coefficients
 
 
 def scalar_vector_mix(func):
@@ -248,7 +248,8 @@ class Fun:
                 self.function = lambda x: chebyshev_barycentric_interpolation(x, values)
                 self.resolved = True
             else:
-                assert len(values) == len(points), 'values and points must have same length'
+                assert len(values) == len(points), f'len(values)={len(values)}, while len(points)={len(points)}, ' \
+                                                   f'these must be same'
                 # TODO: not implemented yet
         elif len(values) == 0:
             assert len(points) == 0, f'no values passed, can not pass points, points passed = {points}'
@@ -1452,7 +1453,7 @@ class Function:
         if xdata is not None:
             assert ydata is not None, f'xdata is {xdata}, while ydata is {ydata}'
             assert len(xdata) == len(ydata)
-            assert fun is None, 'with xdata and ydata, fun must be None'
+            assert fun is None, f'type(fun) = {type(fun)} but with xdata and ydata, fun must be None.'
 
             # xdata must be sorted for spline construction:
             sorted_idx = np.argsort(xdata)
