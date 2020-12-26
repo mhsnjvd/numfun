@@ -105,7 +105,7 @@ def chebyshev_definite_integral(coefficients: np.array) -> float:
     # k = 0 and k = 1 are handled separately
     d[:2] = [2.0, 0.0]
     d[2:n] = 2.0 / (1.0 - np.arange(2.0, n) ** 2)
-    return np.dot(d, c)
+    return np.dot(d, c)  # type: ignore  # numba
 
 
 @complexify
@@ -140,7 +140,7 @@ def chebyshev_clenshaw_evaluation(x: np.array, coefficients: np.array) -> np.arr
     # We only expect real x, so parametrise as a function of the coefficients c and
     # use the complexified version of the evaluation
     @complexify
-    def g(c):
+    def g(c: np.ndarray) -> np.ndarray:
         return chebyshev_clenshaw_evaluation_internal(x, c)
 
     return g(coefficients)
@@ -192,18 +192,18 @@ def chebyshev_barycentric_weights(n: int) -> np.array:
 
     if n == 0:
         # Special case (no points)
-        w = np.zeros((0,))
-    elif n == 1:
+        return np.zeros((0,))
+    if n == 1:
         # Special case (single point)
-        w = np.ones((1,))
-    else:
-        # General case
-        w = np.ones(n)
-        # The second last entry w[-2] and indexing backwards with a gap of 2 are all -1.0
-        w[-2::-2] = -1.0
-        # The last entry is always positive, and the first and the last entry are 0.5 in absolute value
-        w[-1] = 0.5
-        w[0] = .5 * w[0]
+        return np.ones((1,))
+
+    # General case
+    w = np.ones(n)
+    # The second last entry w[-2] and indexing backwards with a gap of 2 are all -1.0
+    w[-2::-2] = -1.0
+    # The last entry is always positive, and the first and the last entry are 0.5 in absolute value
+    w[-1] = 0.5
+    w[0] = .5 * w[0]
     return w
 
 
@@ -216,17 +216,14 @@ def chebyshev_points(n: int) -> np.array:
     """
     if n == 0:
         # Special case (no points)
-        x = np.zeros((0,))
-    elif n == 1:
+        return np.zeros((0,))
+    if n == 1:
         # Special case (single point)
-        x = np.zeros((1,))
-    else:
-        # Chebyshev points:
-        m = n - 1.0
-        # (Use of sine enforces symmetry.)
-        x = np.sin(np.pi * (np.arange(-m, m + 1.0, 2.0) / (2.0 * m)))
-
-    return x
+        return np.zeros((1,))
+    # Chebyshev points:
+    m = n - 1.0
+    # (Use of sine enforces symmetry.)
+    return np.sin(np.pi * (np.arange(-m, m + 1.0, 2.0) / (2.0 * m)))
 
 
 def chebyshev_barycentric_interpolation(x: np.array, fvals: np.array) -> np.array:
@@ -263,14 +260,11 @@ def angles_of_chebyshev_points(n: int) -> np.array:
     """Angles of Chebyshev points of 2nd kind in [-1, 1]."""
 
     if n == 0:
-        out = np.zeros((0,))
-    elif n == 1:
-        out = (np.pi / 2.0) * np.ones((1,))
-    else:
-        m = n - 1.0
-        out = np.arange(m, -1.0, -1.0) * np.pi / m
-
-    return out
+        return np.zeros((0,))
+    if n == 1:
+        return (np.pi / 2.0) * np.ones((1,))
+    m = n - 1.0
+    return np.arange(m, -1.0, -1.0) * np.pi / m
 
 
 def chebyshev_coefficients_to_values(chebyshev_coefficients: np.array) -> np.array:
@@ -302,8 +296,7 @@ def chebyshev_coefficients_to_values(chebyshev_coefficients: np.array) -> np.arr
 
     # Trivial case (constant or empty):
     if n <= 1:
-        values = chebyshev_coefficients.copy()
-        return values
+        return chebyshev_coefficients.copy()
 
     # check for symmetry
     is_even = np.max(np.abs(chebyshev_coefficients[1::2])) == 0.0
@@ -445,33 +438,33 @@ def chebyshev_quadrature_weights(n: int) -> np.array:
 
     if n == 0:
         # Special case (no points!)
-        out = np.zeros((0,))
-    elif n == 1:
+        return np.zeros((0,))
+    if n == 1:
         # Special case (single point)
-        out = 2 * np.ones((1,))
-    else:
-        # General case
-        # Exact integrals of T_k (even)
-        # c = 2/np.r_[1, 1-np.r_[2:n:2]**2]
-        d = 1.0 - np.arange(2.0, n, 2.0)**2
-        c = np.zeros((1 + len(d),))
-        c[0] = 1.0
-        c[1:] = d
-        c = 2.0 / c
+        return 2 * np.ones((1,))
 
-        # Mirror for DCT via FFT
-        # c = np.r_[c, c[n//2-1:0:-1]]
-        # w = np.fft.ifft(c).real
-        c1 = c[n//2-1:0:-1]
-        f = np.zeros((len(c) + len(c1),))
-        f[:len(c)] = c
-        f[len(c):] = c1
-        w = np.fft.ifft(f).real
-        # Boundary weights
-        w[0] = w[0] / 2.0
-        out = np.zeros(len(w) + 1)
-        out[:len(w)] = w
-        out[-1] = w[0]
+    # General case
+    # Exact integrals of T_k (even)
+    # c = 2/np.r_[1, 1-np.r_[2:n:2]**2]
+    d = 1.0 - np.arange(2.0, n, 2.0)**2
+    c = np.zeros((1 + len(d),))
+    c[0] = 1.0
+    c[1:] = d
+    c = 2.0 / c
+
+    # Mirror for DCT via FFT
+    # c = np.r_[c, c[n//2-1:0:-1]]
+    # w = np.fft.ifft(c).real
+    c1 = c[n//2-1:0:-1]
+    f = np.zeros((len(c) + len(c1),))
+    f[:len(c)] = c
+    f[len(c):] = c1
+    w = np.fft.ifft(f).real
+    # Boundary weights
+    w[0] = w[0] / 2.0
+    out = np.zeros(len(w) + 1)
+    out[:len(w)] = w
+    out[-1] = w[0]
     return out
 
 
@@ -536,7 +529,7 @@ def alias_chebyshev_coefficients(c: np.array, m: int) -> np.array:
     return aliased_coeffs
 
 
-def chebyshev_to_monomial_coefficients(c: np.array):
+def chebyshev_to_monomial_coefficients(c: np.ndarray) -> np.ndarray:
     """Polynomial coefficients of a Chebyshev series
     returns coefficients in a vector a such that
      f(x) = a[n]*x^n + a[n-1]*x^(n-1) + ... + a[1]*x + a[0]

@@ -2,6 +2,9 @@
 # PYENV=<path to your environment>  # e.g. PYENV="/d/Anaconda3/envs/ws"
 # export PATH="$PYENV/Scripts":"$PYENV/bin":$PATH
 
+MAKEFLAGS += -j4
+
+
 # FORMAT ---------------------------------------------------------------------------------------------------------------
 docformatter:
 	docformatter -r . --in-place --wrap-summaries=120 --wrap-descriptions=120

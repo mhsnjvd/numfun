@@ -94,7 +94,7 @@ def barycentric_interpolation(x: np.array,
     return fx
 
 
-def barycentric_weights(x):
+def barycentric_weights(x: np.ndarray) -> np.ndarray:
     """Barycentric weights.
 
     returns scaled barycentric weights for the points in the array x. The weights w are scaled such that norm(w, inf) ==

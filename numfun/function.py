@@ -1,7 +1,7 @@
 import copy
-import types
 from collections.abc import Iterable
 from functools import wraps
+from typing import Callable, List, Optional, TypeVar, Union, overload
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -12,6 +12,9 @@ from numfun.chebyshev import chebyshev_barycentric_interpolation, chebyshev_clen
     chebyshev_coefficients_of_derivative, chebyshev_coefficients_of_integral, chebyshev_coefficients_to_values, \
     chebyshev_definite_integral, chebyshev_points, chebyshev_to_monomial_coefficients, \
     chebyshev_values_to_coefficients
+
+TFun = TypeVar('TFun', bound='Fun')
+TFunction = TypeVar('TFunction', bound='Function')
 
 
 def scalar_vector_mix(func):
@@ -47,26 +50,26 @@ class Fun:
     __default_tolerance__ = np.spacing(1)
     __default_min_samples__ = 2**3 + 1
     __default_max_samples__ = 2**16 + 1
+    __resolved: bool
 
     @property
-    def minimum_samples(self):
+    def minimum_samples(self) -> int:
         return Fun.__default_min_samples__
 
     @property
-    def maximum_samples(self):
+    def maximum_samples(self) -> int:
         return Fun.__default_max_samples__
 
     @property
-    def tolerance(self):
+    def tolerance(self) -> float:
         return Fun.__default_tolerance__
 
     @property
-    def domain(self):
+    def domain(self) -> np.ndarray:
         if self.length > 0:
             return np.array([-1.0, 1.0])
-        else:
-            # TODO: Empty function should have no domain? or
-            return np.zeros((0,))
+        # TODO: Empty function should have no domain? or
+        return np.zeros((0,))
 
     # @domain.setter
     # def domain(self, dom: np.array):
@@ -78,11 +81,11 @@ class Fun:
     #     return
 
     @property
-    def values(self):
+    def values(self) -> np.ndarray:
         return self.coefficients_to_values()
 
     @property
-    def length(self):
+    def length(self) -> int:
         return len(self.coefficients)
 
     @property
@@ -91,7 +94,7 @@ class Fun:
         return self.__coefficients.copy()
 
     @coefficients.setter
-    def coefficients(self, coeffs: np.array):
+    def coefficients(self, coeffs: np.array) -> None:
         assert isinstance(coeffs, type(np.zeros(0,))), f'coefficients must be 1-dimensional numpy array, ' \
                                                        f'type of input coefficients is {type(coeffs)}'
         assert len(coeffs.shape) == 1, f'coefficients must be 1-dimensional numpy array, s' \
@@ -99,7 +102,7 @@ class Fun:
         self.__coefficients = coeffs.copy()
 
     @property
-    def points(self):
+    def points(self) -> np.ndarray:
         return chebyshev_points(self.length)
 
     # TODO: work on this to allow construction from arbitrary points
@@ -111,11 +114,11 @@ class Fun:
     #     self.__points = pts
 
     @property
-    def resolved(self):
+    def resolved(self) -> bool:
         return self.__resolved
 
     @resolved.setter
-    def resolved(self, status: bool):
+    def resolved(self, status: bool) -> None:
         self.__resolved = status
 
     @property
@@ -123,11 +126,10 @@ class Fun:
         return self.__function
 
     @function.setter
-    def function(self, fun):
+    def function(self, fun) -> None:
         self.__function = fun
-        return
 
-    def construct_from_lambda(self, fun, length=None):
+    def construct_from_lambda(self, fun, length: Optional[int] = None) -> None:
         """Adaptive or fixed length construction of a function object from lambda."""
         self.function = fun
 
@@ -188,13 +190,15 @@ class Fun:
                 # All done here, return
                 return
 
-    def __init__(self,
-                 fun=None,                               # A lambda to construct a function
-                 length=None,                            # construct fun on a grid of this length
-                 values=np.zeros((0,)),                  # Values taken by the function
-                 coefficients=np.zeros((0,)),            # Chebyshev coefficients of the function
-                 points=np.zeros((0,)),                  # Points on which values are taken, default to Chebyshev
-                 ):
+    def __init__(
+            self,
+            # A lambda to construct a function
+            fun: Union[None, Callable[[float], float], Callable[[np.ndarray], np.ndarray]] = None,
+            length: Optional[int] = None,                    # construct fun on a grid of this length
+            values: np.ndarray = np.zeros((0,)),             # Values taken by the function
+            coefficients: np.ndarray = np.zeros((0,)),       # Chebyshev coefficients of the function
+            points: np.ndarray = np.zeros((0,)),             # Points on which values are taken, default to Chebyshev
+    ) -> None:
         """To construct a function, you can.
 
         1. Pass a function i.e., a lambda in which case values,
@@ -254,18 +258,18 @@ class Fun:
         elif len(values) == 0:
             assert len(points) == 0, f'no values passed, can not pass points, points passed = {points}'
 
-    def copy(self):
+    def copy(self: TFun) -> TFun:
         """Deep copy of a function
         :return: an object of type function
         """
         return copy.deepcopy(self)
 
-    def coefficients_to_values(self, coeffs=None):
+    def coefficients_to_values(self, coeffs: Optional[np.ndarray] = None) -> np.ndarray:
         if coeffs is None:
             coeffs = self.coefficients
         return chebyshev_coefficients_to_values(coeffs.copy())
 
-    def values_to_coefficients(self, values=None):
+    def values_to_coefficients(self, values: Optional[np.ndarray] = None) -> np.ndarray:
         if values is None:
             values = self.coefficients_to_values()
         return chebyshev_values_to_coefficients(values.copy())
@@ -346,7 +350,7 @@ class Fun:
     # ############################################################
     # ############       Boolearn Operators        ###############
     # ############################################################
-    def __eq__(self, other):
+    def __eq__(self, other: object) -> bool:
         return self.isequal(other)
 
     def any(self):
@@ -365,12 +369,12 @@ class Fun:
         # TODO: supply tolerances here?
         return np.allclose(self.coefficients, 0.0 * self.coefficients)
 
-    def isequal(self, other):
+    def isequal(self, other: object) -> bool:
         # [TODO] Only coefficients are checked
         # resolution is not compared
         if not isinstance(other, Fun):
-            # [TODO] something must be done
             print('isequal() accepts a Fun object only.')
+            return NotImplemented
 
         # Get coefficients and trim zeros at the end
         a = np.trim_zeros(self.coefficients, 'b')
@@ -385,7 +389,7 @@ class Fun:
         # TODO: also provide tolerances
         return np.allclose(a, b)
 
-    def isfinite(self):
+    def isfinite(self) -> bool:
         """Test if a Function is bounded.
 
         returns False if f has any infinite coefficients
@@ -393,7 +397,7 @@ class Fun:
         # Check if coefficients are finite:
         return np.all(np.isfinite(self.coefficients))
 
-    def isinf(self):
+    def isinf(self) -> bool:
         """Test if a Function is unbounded.
 
         returns True if f has any infinite coefficients
@@ -401,7 +405,7 @@ class Fun:
         # Check if any coefficients are infinite:
         return np.any(np.isinf(self.coefficients))
 
-    def isnan(self):
+    def isnan(self) -> bool:
         """Test if a Function has any NaN coefficients."""
         # Check if any coefficients are NaN:
         return np.any(np.isnan(self.coefficients))
@@ -416,12 +420,12 @@ class Fun:
     # from the subclass "Function" might get destroyed if we
     # do not copy the input
     # ###########################################################
-    def prolong(self, n: int):
+    def prolong(self: TFun, n: int) -> TFun:
         result = self.copy()
         result.coefficients = self.prolong_coefficients(self.coefficients, n)
         return result
 
-    def real(self):
+    def real(self: TFun) -> TFun:
         """Real part of a Fun."""
         result = self.copy()
         result.coefficients = result.coefficients.real
@@ -437,22 +441,22 @@ class Fun:
         # else:
         #     return Fun(coefficients=c)
 
-    def imag(self):
+    def imag(self: TFun) -> TFun:
         """Imaginary part of a Fun."""
         return (-1.0j * self).real()
 
-    def conjugate(self):
+    def conjugate(self: TFun) -> TFun:
         """Conjugate of a Fun."""
         out = self.copy()
         if not self.isreal():
             out.coefficients = np.conjugate(out.coefficients)
         return out
 
-    def conj(self):
+    def conj(self: TFun) -> TFun:
         """Alias of conjugate."""
         return self.conjugate()
 
-    def fix(self):
+    def fix(self: TFun) -> TFun:
         out = self.copy()
         # Evaluate at the two end points, and an arbitrary interior point:
         arbitraryPoint = 0.1273123881594
@@ -463,11 +467,11 @@ class Fun:
         out.coefficients = np.fix(meanfx)
         return out
 
-    def fliplr(self):
+    def fliplr(self: TFun) -> TFun:
         """Has no effect on the object."""
         return self.copy()
 
-    def flipud(self):
+    def flipud(self: TFun) -> TFun:
         """Flip/reverse a function object.
 
         returns g such that g(x) = f(-x) for all x in [-1, 1].
@@ -477,7 +481,7 @@ class Fun:
         out.coefficients[1::2] = -out.coefficients[1::2]
         return out
 
-    def floor(self):
+    def floor(self: TFun) -> TFun:
         out = self.copy()
         # Evaluate at the two end points, and an arbitrary interior point:
         arbitrary_point = 0.1273123881594
@@ -488,7 +492,7 @@ class Fun:
         out.coefficients = np.floor(mean_fx)
         return out
 
-    def abs(self):
+    def abs(self: TFun) -> TFun:
         """Absolute value of a function.
 
         returns the absolute value of f, where f has no roots in [-1 1].
@@ -510,11 +514,11 @@ class Fun:
         out.coefficients = abs_f.coefficients.copy()
         return out
 
-    def cumsum(self):
+    def cumsum(self: TFun) -> TFun:
         """Indefinite integral of a Fun."""
         return self.integral()
 
-    def integral(self):
+    def integral(self: TFun) -> TFun:
         """Indefinite integral of a Fun."""
         f = self.copy()
         f.coefficients = chebyshev_coefficients_of_integral(self.coefficients.copy())
@@ -531,10 +535,10 @@ class Fun:
         # f.coefficients = c
         return f
 
-    def diff(self, order: int = 1):
+    def diff(self: TFun, order: int = 1) -> TFun:
         return self.derivative(order)
 
-    def derivative(self, order: int = 1):
+    def derivative(self: TFun, order: int = 1) -> TFun:
         """Derivative of a function
         f.derivative(k) is the kth derivative.
 
@@ -582,16 +586,16 @@ class Fun:
     # ############################################################
     # ###### section: operator overloads that output a Fun #######
     # ############################################################
-    def __pos__(self):
-        # TODO: to copy or not ot copy here?
+    def __pos__(self: TFun) -> TFun:
+        # TODO: to copy or not to copy here?
         return self.copy()
 
-    def __neg__(self):
+    def __neg__(self: TFun) -> TFun:
         result = self.copy()
         result.coefficients = -1.0 * result.coefficients
         return result
 
-    def __add__(self, other):
+    def __add__(self: TFun, other: object) -> TFun:
         if not isinstance(other, Fun):
             return self.__radd__(other)
 
@@ -616,7 +620,7 @@ class Fun:
 
         return result
 
-    def __radd__(self, other):
+    def __radd__(self: TFun, other) -> TFun:
         result = self.copy()
         if self.length > 0:
             # CAUTION: Coefficients can not be operated upon entry by entry, we
@@ -632,7 +636,7 @@ class Fun:
 
         return result
 
-    def __sub__(self, other):
+    def __sub__(self, other) -> TFun:
         return self + (-1.0 * other)
 
     def __rsub__(self, other):
@@ -720,13 +724,13 @@ class Fun:
     # ############################################################
     # ##########   section: misc overloads               #########
     # ############################################################
-    def __len__(self):
+    def __len__(self) -> int:
         return self.length
 
-    def __str__(self):
+    def __str__(self) -> str:
         return self.__repr__()
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         s = f'Object of class Fun of length {self.length} on {self.domain}\n'
         # if self.fun:
         #    fun_str = inspect.getsource(self.fun).split('=')[1]
@@ -735,23 +739,22 @@ class Fun:
         #    s = s + "Constructed via: %s" % fun_str
         return s
 
-    def __call__(self, x):
-        if isinstance(x, types.LambdaType):
+    def __call__(self: TFun, x) -> Union[TFun, np.ndarray, float]:
+        if isinstance(x, Callable):  # type: ignore  # Not sure why mypy complains
             # A lambda has been passed
             f = x
             # square brackets are crucial to avoid infinite recursion See __getitem__
-            return Fun(lambda t: self[f(t)])
-        elif isinstance(x, Fun):
+            return type(self)(lambda t: self[f(t)])
+        if isinstance(x, Fun):
             # A Function has been passed
             f = x
             # Use square brackets in both cases
             # TODO: how do we ensure domain when this is called from subclass
-            return Fun(lambda t: self[f[t]])
-        else:
-            # square brackets are crucial to avoid infinite recursion See __getitem__
-            return self[x]
+            return type(self)(lambda t: self[f[t]])
+        # square brackets are crucial to avoid infinite recursion See __getitem__
+        return self[x]
 
-    def __getitem__(self, x):
+    def __getitem__(self, x) -> np.ndarray:
         # Evaluate the object at the point(s) x:
         return self.evaluate(x)
 
@@ -759,7 +762,7 @@ class Fun:
     # ##########   section: methods that output numbers  #########
     # ############################################################
     # TODO: try using @scalar_vector_mix decorator
-    def evaluate(self, x):
+    def evaluate(self, x) -> Union[float, np.ndarray]:
         """Evaluate the object at the point(s) x."""
 
         x_is_scalar = not isinstance(x, Iterable)
@@ -803,8 +806,7 @@ class Fun:
     def vscale(self):
         if self.length == 0:
             return np.nan
-        else:
-            return np.max(np.abs(self.values))
+        return np.max(np.abs(self.values))
 
     def minandmax(self):
         """Global minimum and maximum on [-1,1]. returns a tuple (vals, pos). vals is a numpy array of length 2:
@@ -1445,7 +1447,18 @@ class Function:
         domain_2 = other.domain.copy()
         return np.array_equal(domain_1, domain_2)
 
-    def __init__(self, fun=None, xdata=None, ydata=None, *args, **kwargs):
+    def __init__(
+            self,
+            fun: Union[
+                None,
+                Callable[[float], float],
+                Callable[[np.ndarray], np.ndarray],
+                List[Callable[[float], float]],
+            ] = None,
+            xdata: Optional[np.ndarray] = None,
+            ydata: Optional[np.ndarray] = None,
+            *args, **kwargs
+    ) -> None:
 
         default_domain = np.array([-1.0, 1.0])
 
@@ -1494,16 +1507,16 @@ class Function:
             a, b = self.domain[i], self.domain[i + 1]
             kwargs['length'] = lengths[i]
             if fun is not None and not piecewise_lambda_flag:
-                kwargs['fun'] = lambda x: fun(self.map_onto_ab(x, a, b))
+                kwargs['fun'] = lambda x: fun(self.map_onto_ab(x, a, b))  # type: ignore  # mypy doesn't see flag
             elif piecewise_lambda_flag:
-                kwargs['fun'] = lambda x: (fun[i])(self.map_onto_ab(x, a, b))
+                kwargs['fun'] = lambda x: (fun[i])(self.map_onto_ab(x, a, b))  # type: ignore # mypy doesn't see flag
             elif piecewise_coeffs_flag:
                 kwargs['coefficients'] = piecewise_coefficients[i]
 
             # Construct the ith piece:
             self.pieces[i] = Fun(*args, **kwargs)
 
-    def copy(self):
+    def copy(self: TFunction) -> TFunction:
         """Deep copy of a function
         :return: an object of type function
         """
@@ -1527,13 +1540,13 @@ class Function:
     # def __getattr__(self, item):
     #     return self.function_object.__getattribute__(item)
 
-    def __len__(self):
+    def __len__(self) -> int:
         return self.length
 
-    def __str__(self):
+    def __str__(self) -> str:
         return self.__repr__()
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         if self.npieces == 1:
             s = f'Function with {self.npieces} smooth piece with length {self.length} on {self.domain}\n'
         else:
@@ -1542,27 +1555,42 @@ class Function:
         return s
 
     # TODO: should we allow *args and **kwargs in this and Fun __call__ ?
-    def __call__(self, x):
-        # Call the function object
-        if not isinstance(x, types.LambdaType):
-            return self[x]
-        else:
-            assert False, '__call__, not implemented for lambdas yet'
-            # When x is a lambda the result is a
-            # composition. TODO: this has not been
-            # tested, probably need to fix the lambda for
-            # mapping the domain correctly
-            # result = self.copy()
-            # return result
+    @overload
+    def __call__(
+            self: TFunction, x: Union[Callable[[float], float], Callable[[np.ndarray], np.ndarray]]
+    ) -> TFunction:
+        ...
 
-    def __getitem__(self, x):
+    @overload
+    def __call__(self, x: float) -> float:
+        ...
+
+    @overload
+    def __call__(self, x: np.ndarray) -> np.ndarray:
+        ...
+
+    def __call__(self: TFunction, x) -> Union[np.ndarray, float, TFunction]:
+        # Call the function object
+        if not isinstance(x, Callable):  # type: ignore
+            return self[x]
+        raise NotImplementedError('__call__, not implemented for lambdas yet')
+        # When x is a lambda the result is a
+        # composition. TODO: this has not been
+        # tested, probably need to fix the lambda for
+        # mapping the domain correctly
+        # result = self.copy()
+        # return result
+
+    def __getitem__(self, x) -> Union[float, np.ndarray]:
         # Evaluate the object at the point(s) x:
         return self.evaluate(x)
 
     # ############################################################
     # ####### section: Boolean Operators for Functions ###########
     # ############################################################
-    def __eq__(self, other):
+    def __eq__(self, other: object) -> bool:
+        if not isinstance(other, Function):
+            return NotImplemented
         out = False
         if len(self.pieces) == len(other.pieces):
             out = np.all([(self.pieces[k]).__eq__(other.pieces[k]) for k in range(len(self.pieces))])
@@ -1622,7 +1650,7 @@ class Function:
             out[k] = xk
         return out
 
-    def evaluate(self, x):
+    def evaluate(self, x) -> Union[float, np.ndarray]:
         x_is_scalar = not isinstance(x, Iterable)
         if x_is_scalar:
             # Cast to an array and then numpy array
@@ -1650,7 +1678,7 @@ class Function:
             out = out[0]
         return out
 
-    def vscale(self):
+    def vscale(self) -> float:
         """Vertical scale of a function.
 
         :return: float

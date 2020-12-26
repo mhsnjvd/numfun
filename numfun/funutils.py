@@ -5,7 +5,7 @@ from numba import njit
 
 
 @njit
-def split_array_at_boundaries(x: np.array, boundary: np.array, out: List):
+def split_array_at_boundaries(x: np.array, boundary: np.array, out: List) -> None:
     m = len(boundary) - 1
     n = len(x)
     if n == 0 or m == 0:
@@ -23,7 +23,6 @@ def split_array_at_boundaries(x: np.array, boundary: np.array, out: List):
         # xk = np.zeros((nk,))
         xk = x[mask]
         out.append(xk)
-    return
 
 
 def inf_norm_of_derivatives(f, domain=np.array([-1.0, 1.0]), order=4, grid_size=50):
