@@ -1,0 +1,8 @@
+[flake8]
+exclude = .git,__pycache__,examples
+max-line-length = 120
+ignore =
+    # Invalid escape sequence -> ok for LaTeX comments
+    W605,
+    # Missing whitespace around arithmetic operator
+    E226,

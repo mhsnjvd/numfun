@@ -1,0 +1,19 @@
+[FORMAT]
+max-line-length=120
+
+good-names=
+    df,i,j,
+    f,g,
+    x,y,z,t,xx,x_,
+    F,G,T,
+    Tx,
+
+disable=
+    missing-module-docstring,
+    missing-function-docstring,
+    missing-class-docstring,
+    fixme,
+    # Not good to disable invalid-name => should be temporary
+    invalid-name,
+    # Allow LaTeX in docstrings and comments
+    anomalous-backslash-in-string,

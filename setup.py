@@ -4,7 +4,7 @@ with open("README.md", "r") as fh:
     long_description = fh.read()
 
 setuptools.setup(
-    name="numfun", 
+    name="numfun",
     version="0.0.1",
     author="Mohsin Javed",
     author_email="mhsnjvd@gmail.com",

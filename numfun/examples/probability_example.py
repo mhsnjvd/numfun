@@ -1,6 +1,7 @@
 import matplotlib.pyplot as plt
 import numpy as np
-from function import Function
+
+from numfun.function import Function
 
 f = Function(lambda x: np.heaviside(x, 0), domain=[-1, 0, 1])
 

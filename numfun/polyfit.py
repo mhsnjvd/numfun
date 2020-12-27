@@ -1,12 +1,16 @@
+from typing import Sequence, Union
+
 import numpy as np
-from numfun.function import Function
 from numba import njit
-from collections.abc import Iterable
+
+from numfun.function import Function
 
 
+# noinspection PyPep8Naming
 @njit
 def polyfit_jit(x: np.array, y: np.array, n: int, a: float, b: float) -> tuple:
-    """Jitted version of polyfit, see polyfit for details
+    """Jitted version of polyfit, see polyfit for details.
+
     :param x: nodes
     :param y: data
     :param n: degree of the polynomial fit
@@ -24,19 +28,24 @@ def polyfit_jit(x: np.array, y: np.array, n: int, a: float, b: float) -> tuple:
 
     # TODO: this is not compiling :(
     # Initialize variables for jit:
-    c = np.zeros((n+1,))
-    residuals = np.zeros((1,))
-    rank = int(0)
-    singular_values = np.zeros((n+1,))
+    c = np.zeros((n+1,))  # noqa
+    residuals = np.zeros((1,))  # noqa
+    rank = int(0)  # noqa
+    singular_values = np.zeros((n+1,))  # noqa
 
     c, residuals, rank, singular_values = np.linalg.lstsq(Tx, y, rcond=None)
 
     return c, residuals, rank, singular_values
 
 
-def polyfit(x, y, degree=1, domain=None):
-    """Least squares polynomial fitting to
-    discrete data with piecewise domain splitting handled
+def polyfit(
+        x: np.ndarray,
+        y: np.ndarray,
+        degree: Union[int, Sequence[int]] = 1,
+        domain: Union[None, np.ndarray, Sequence[float]] = None
+) -> Function:
+    """Least squares polynomial fitting to discrete data with piecewise domain splitting handled.
+
     :param x:
     :param y:
     :param degree: an array or a double len(degree) = len(domain) - 1
@@ -45,17 +54,17 @@ def polyfit(x, y, degree=1, domain=None):
     """
 
     if domain is None or len(domain) == 2:
+        assert isinstance(degree, int)
         return polyfit_global(x, y, degree, domain)
-    elif len(domain) > 2:
+    if len(domain) > 2:
         n_pieces = len(domain) - 1
-        if isinstance(degree, Iterable):
-            # A list of degrees is passed
-            assert n_pieces == len(degree), f'must specify degree for each domain'
-        else:
-            # the degree passed is just an integer
-            degree = n_pieces * [int(degree)]
+        if isinstance(degree, Sequence):  # A list of degrees is passed
+            assert n_pieces == len(degree), 'must specify degree for each domain'
+            degrees = degree
+        else:  # The degree passed is just an integer
+            degrees = n_pieces * [int(degree)]
     else:
-        assert False, f'domain = {domain}, domain must be for the form [a, b]'
+        raise AssertionError(f'domain = {domain}, domain must be for the form [a, b]')
 
     all_coefficients = n_pieces * [None]
     for j in range(n_pieces):
@@ -65,21 +74,26 @@ def polyfit(x, y, degree=1, domain=None):
             c = np.array([])
         else:
             xj, yj = x[idx], y[idx]
-            f = polyfit_global(xj, yj, degree=degree[j], domain=[a, b])
+            f = polyfit_global(xj, yj, degree=degrees[j], domain=[a, b])
             c = f.coefficients[0].copy()
         all_coefficients[j] = c
 
     return Function(coefficients=all_coefficients, domain=domain)
 
 
-def polyfit_global(x, y, degree=1, domain=None):
-    """Degree n least squares polynomial approximation of data y taken on points x
-    in a domain.
-    :param xdata: x-values, np array
-    :param ydata: y-values, i.e., data values, np array
+def polyfit_global(
+        x: np.ndarray,
+        y: np.ndarray,
+        degree: int = 1,
+        domain: Union[None, Sequence[float], np.ndarray] = None
+) -> Function:
+    """Degree n least squares polynomial approximation of data y taken on points x in a domain.
+
+    :param x: x-values, np array
+    :param y: y-values, i.e., data values, np array
     :param degree: degree of approximation, an integer
     :param domain: domain of approximation
-    :return: 
+    :return:
     """
 
     if domain is None:
@@ -108,27 +122,27 @@ def polyfit_global(x, y, degree=1, domain=None):
     c, residuals, rank, singular_values = np.linalg.lstsq(Tx, y, rcond=None)
 
     # Make a function:
-    f = Function(coefficients=c, domain=domain)
-    return f
+    return Function(coefficients=c, domain=domain)
 
 
-if __name__ == '__main__':
+def main() -> None:
     import matplotlib.pyplot as plt
     x = np.linspace(0, 10, 11)
-    y = x**2
+    y = x ** 2
     n = 2
     domain = [0, 10]
-    a = domain[0]
-    b = domain[-1]
     f = polyfit(x, y, n, domain)
     plt.plot(x, y, '.')
     f.plot()
 
     x = np.linspace(0, 5, 201)
-    y = x * (x < 2.0) + x**2 * ((x >= 2.0) & (x < 3.0)) + \
-        x**3 * ((x >= 3.0) & (x < 4.0)) + x**4 * (x >= 4.0)
+    y = x * (x < 2.0) + x ** 2 * ((x >= 2.0) & (x < 3.0)) + \
+        x ** 3 * ((x >= 3.0) & (x < 4.0)) + x ** 4 * (x >= 4.0)
     domain = [0, 1, 2, 3, 4, 5]
     degrees = [0, 1, 2, 3, 4]
     f = polyfit(x, y, degree=degrees, domain=domain)
     f.plot()
 
+
+if __name__ == '__main__':
+    main()

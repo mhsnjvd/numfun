@@ -3,12 +3,10 @@ from numba import njit
 
 
 @njit
-def barycentric_interpolation_jit(x: np.array,
-                                  fvals: np.array,
-                                  xk: np.array,
-                                  wk: np.array) -> np.array:
-    """See the non-jitted version for documentation. This is the
-    jit enabled main workhorse code
+def barycentric_interpolation_jit(x: np.array, fvals: np.array, xk: np.array, wk: np.array) -> np.array:
+    """See the non-jitted version for documentation.
+
+    This is the jit enabled main workhorse code
     """
     if len(x) < 4 * len(xk):
         # Loop over evaluation points
@@ -18,8 +16,8 @@ def barycentric_interpolation_jit(x: np.array,
         fx = np.zeros((len(x),))
 
         # Loop:
-        for j in range(0, len(x)):
-            xx = wk / (x[j] - xk)
+        for j, x_j in enumerate(x):
+            xx = wk / (x_j - xk)
             fx[j] = np.dot(xx, fvals) / xx.sum()
     else:
         # Loop over barycentric nodes
@@ -48,10 +46,9 @@ def barycentric_interpolation(x: np.array,
                               fvals: np.array,
                               xk: np.array,
                               wk: np.array = None) -> np.array:
-    """ Barycentric interpolation formula
-      barycentric_interpolation(x, fvals, xk, wk) uses the 2nd form barycentric formula with
-      weights wk to evaluate an interpolant of the data {xk, fvals} at the points x.
-      Note that xk, wk (if provided), and fk should all be arrays of the same length.
+    """Barycentric interpolation formula barycentric_interpolation(x, fvals, xk, wk) uses the 2nd form barycentric
+    formula with weights wk to evaluate an interpolant of the data {xk, fvals} at the points x. Note that xk, wk (if
+    provided), and fk should all be arrays of the same length.
 
     :param x: a numpy array of points where we want to evaluate the interpolant
     :param fvals: a numpy array of values taken by the function at the points xk
@@ -69,7 +66,8 @@ def barycentric_interpolation(x: np.array,
     wk = wk or barycentric_weights(xk)
 
     assert len(xk) == len(wk), f'xk and wk must be of the same length: len(xk) = {len(xk)} but len(wk) = {len(wk)}'
-    assert len(xk) == len(fvals), f'xk and fvals must be of the same length: len(xk) = {len(xk)} but len(fvals) = {len(fvals)}'
+    assert len(xk) == len(fvals), f'xk and fvals must be of the same length: ' \
+                                  f'len(xk) = {len(xk)} but len(fvals) = {len(fvals)}'
 
     # Trivial case
     if len(x) == 0:
@@ -96,10 +94,11 @@ def barycentric_interpolation(x: np.array,
     return fx
 
 
-def barycentric_weights(x):
-    """ Barycentric weights.
-    returns scaled barycentric weights for the points in the
-    array x. The weights w are scaled such that norm(w, inf) == 1.
+def barycentric_weights(x: np.ndarray) -> np.ndarray:
+    """Barycentric weights.
+
+    returns scaled barycentric weights for the points in the array x. The weights w are scaled such that norm(w, inf) ==
+    1.
     """
     # input dimension:
     n = len(x)
